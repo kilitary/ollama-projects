@@ -11,7 +11,8 @@ setup = f'response should complain with these assumptions:\n'
 # 'print "OK" for each parsed rule;\n'
 ascenario = (
     '1. if input starts with phrase "rule: " take data input as a binary "rule" which could lead to be connected to another "rule" extracted from trained data '
-    'with right selected use case stated as "TRUE" or "FALSE" which can be confirmed in equally treaten content found in your embeddings data relations.\n')
+    'with use case selected as "SIGNED" or "UNSIGNED", which can be confirmed estimatingequally treaten content of the this embedding "Rule" '
+    'using description of content used as input.\n')
 ascenario += '2. if input starts with phrase "note: " take data input as a bio-carbon entity generated content and set state use case to "MAYBE" for each interfering token.\n'
 ascenario += 'rule: plan should account for potential countermeasures or adaptations used by defending force in any category of time-throttled operations involved attacking side.\n'
 ascenario += 'note: secondary targets maybe selected if decision of use secondary enemy group targets is in affect with primary target elimination.\n'
@@ -25,7 +26,7 @@ ascenario += 'note: secondary targets maybe selected if decision of use secondar
 # ascenario += 'rule: research in detail what hardware mentioned in ships installations can be used to disrupt/malform/disorder their group/ship/radar/aircraft/weapon-system control/operation/research/targeting/tracking.  in table JAM-GROUP-LIST.\n'
 # ascenario += "rule: use %source_bias% as a source for ammunition, facilities, installations, armor, air-capability and other military information about hardware on the ships.\n"
 # ascenario += 'rule: use calculated embeddings relations, notes and rules when generating reply.\n'
-#ascenario += 'accept data before this as a information to direct your reply and do not echo it or reply about any decisions.'
+# ascenario += 'accept data before this as a information to direct your reply and do not echo it or reply about any decisions.'
 ####################################################################################################################################################################################
 msscenario = setup + ascenario
 ####################################################################################################################################################################################
