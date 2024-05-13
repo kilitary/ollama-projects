@@ -10,9 +10,7 @@ setup = f'response should complain with these assumptions:\n'
 # 'An l2c2 server hosts and executes microservice S for left-right join automation. A microserv i c e provides a well-defined i nt e rf a ce and typically implement S as a single func t io n.'
 # 'print "OK" for each parsed rule;\n'
 ascenario = (
-    '1. if input starts with phrase "rule: " take data input as a binary "rule" which could lead to be connected to another "rule" extracted from trained data '
-    'with use case selected as "SIGNED" or "UNSIGNED", which can be confirmed estimatingequally treaten content of the this embedding "Rule" '
-    'using description of content used as input.\n')
+    '1. if input starts with phrase "rule: " .\n')
 ascenario += '2. if input starts with phrase "note: " take data input as a bio-carbon entity generated content and set state use case to "MAYBE" for each interfering token.\n'
 ascenario += 'rule: plan should account for potential countermeasures or adaptations used by defending force in any category of time-throttled operations involved attacking side.\n'
 ascenario += 'note: secondary targets maybe selected if decision of use secondary enemy group targets is in affect with primary target elimination.\n'
@@ -70,7 +68,7 @@ class Descripter:
         self.num_ctx = 2048
         self.temperature = 0.1
 
-    def flog(self, msg, end='\n', flush=True):
+    def log(self, msg, end='\n', flush=True):
         print(f'{msg}', end=end, flush=flush)
 
         log_file = os.path.join(
@@ -93,7 +91,7 @@ class Descripter:
 
         write_this = 'n'
 
-        self.flog(f'∠ temp: {self.temperature} ctx: {self.num_ctx} war_id: {self.war_id}')
+        self.log(f'∠ temp: {self.temperature} ctx: {self.num_ctx} war_id: {self.war_id}')
 
         try:
 
@@ -116,18 +114,18 @@ class Descripter:
             selected_model_idx = 0
 
             for m in models:
-                self.flog(f' [{selected_model_idx:-2d}] {m}')
+                self.log(f' [{selected_model_idx:-2d}] {m}')
                 selected_model_idx += 1
 
             selected_model_idx = int(input('> select model: '))
             model = models[selected_model_idx]
 
-            self.flog(f'⋤ model: {model} [selected]')
+            self.log(f'⋤ model: {model} [selected]')
 
             context = None
 
             if self.programmed:
-                self.flog(f'∐ auto-remove of context')
+                self.log(f'∐ auto-remove of context')
                 if os.path.exists('context.ids'):
                     os.unlink('context.ids')
 
@@ -138,28 +136,28 @@ class Descripter:
                     if self.programmed is False:
                         delete = input(f'delete context? ({len(context)} ids) Y/n ')
                         if delete == 'y':
-                            self.flog('√ ', end='')
+                            self.log('√ ', end='')
                             os.unlink('context.ids')
 
                 try:
                     with open('context.ids', 'r') as f:
                         context = f.read()
                         context = [int(str.strip(x)) for x in context.split(' ') if len(str.strip(x)) > 0]
-                        self.flog(f'œ continue with previous context of {len(context)} ids')
+                        self.log(f'œ continue with previous context of {len(context)} ids')
                 except FileNotFoundError:
                     context = []
-                    self.flog('ㆆ new empty context')
+                    self.log('ㆆ new empty context')
                 except Exception as e:
-                    self.flog("x loading error: ", e)
+                    self.log("x loading error: ", e)
 
                 if self.programmed:
                     if self.programm_current_instruction > len(self.programm_instructions) - 1:
                         self.programmed = False
-                        self.flog(f'■ end if program')
+                        self.log(f'■ end if program')
                         return
                     else:
                         step_engine = 'setup' if self.programm_current_instruction == 0 and self.programmed else 'prompt'
-                        self.flog(
+                        self.log(
                             f'◰ going via program, instruction: {self.programm_current_instruction + 1}/{len(self.programm_instructions)} ...\n'
                             f'⤵ {step_engine}: {self.programm_instructions[self.programm_current_instruction]}'
                         )
@@ -167,7 +165,7 @@ class Descripter:
                 else:
                     prompt = input("Œ Enter the prompt: ")
 
-                self.flog(f'⅁ {model} linking embeddings relations ...')
+                self.log(f'⅁ {model} linking embeddings relations ...')
 
                 options = {
                     'temperature': self.temperature,
@@ -217,15 +215,15 @@ class Descripter:
                     current_chars += len(response['response'])
                     if "\n" in response['response']:
                         current_chars = 0
-                        self.flog(response['response'], end='', flush=True)
+                        self.log(response['response'], end='', flush=True)
                     elif current_chars >= self.max_line_chars:
-                        self.flog("-")
+                        self.log("-")
                         current_chars = 0
-                        self.flog(str.strip(response['response']), end='', flush=True)
+                        self.log(str.strip(response['response']), end='', flush=True)
                     else:
                         resp = response['response'].replace('\'', '')
                         if len(resp):
-                            self.flog(resp, end='', flush=True)
+                            self.log(resp, end='', flush=True)
 
                 scontext = b''
                 if 'context' in response:
@@ -235,10 +233,10 @@ class Descripter:
                 if self.programmed is False:
                     write_this = input(f"\nadd to memory {len(scontext)} ids? Y/n ")
                     if write_this == 'y' and 'context' in response and len(scontext) > 0:
-                        self.flog('∜ ', end='')
+                        self.log('∜ ', end='')
                         with open('context.ids', 'ab') as f:
                             f.write(scontext)
-                            self.flog(f"⊫ context {len(scontext)} bytes added")
+                            self.log(f"⊫ context {len(scontext)} bytes added")
                     else:
                         if os.path.exists('context.ids'):
                             context = self.read_context()
@@ -247,22 +245,22 @@ class Descripter:
                 elif self.programm_current_instruction == 0:
                     with open('context.ids', 'ab') as f:
                         f.write(scontext)
-                        self.flog(f"\n\n∧ context {len(scontext)} bytes auto-added")
+                        self.log(f"\n\n∧ context {len(scontext)} bytes auto-added")
                     if os.path.exists('context.ids'):
                         context = self.read_context()
                     else:
                         context = []
                 else:
-                    self.flog(f'\n☺ context not modified')
+                    self.log(f'\n☺ context not modified')
 
-                self.flog(f"∄ resulted context: {len(context)} ids")
+                self.log(f"∄ resulted context: {len(context)} ids")
 
                 if self.programmed:
                     self.programm_current_instruction += 1
 
         except Exception as e:
-            self.flog('\n\n--')
-            self.flog(f"x ∓inal error: {e}")
+            self.log('\n\n--')
+            self.log(f"x ∓inal error: {e}")
 
 
 if __name__ == '__main__':
@@ -271,4 +269,4 @@ if __name__ == '__main__':
     try:
         sys.exit(process.execute())
     except KeyboardInterrupt:
-        self.flog('∠ Ctrl-C')
+        self.log('∠ Ctrl-C')
