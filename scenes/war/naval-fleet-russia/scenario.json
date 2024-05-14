@@ -14,7 +14,7 @@
     "analyze summary effects on each side and print it in a table.",
     "print a html page with all previous answers and information, with 'HR' delimetering INFO sections."
   ],
-  "temperature": 0.2,
+  "temperature": 0.0,
   "name": "russian naval warfare / elimination of kuznetsov aircraft carrier",
   "model": "phi3",
   "biases": "wikipedia.org",

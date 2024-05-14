@@ -47,13 +47,13 @@ class Simulatar:
             self.sim_log_path,
             'sim_' + f"{name}_" + str(self.sim_id) + ".md"
         )
-        with open(log_file, "ab") as log_file_handle:
+        with open(log_file, "at") as log_file_handle:
             full_msg = (msg + end).encode(encoding='utf-8', errors='replace')
-            log_file_handle.write(full_msg)
+            log_file_handle.write(str(full_msg))
     
     def read_context(self):
-        with open('context.ids', 'r') as f:
-            context = f.read()
+        with open('context.ids', 'r') as file:
+            context = file.read()
             context = [int(str.strip(x)) for x in context.split(' ') if len(str.strip(x)) > 0]
         return context
     
@@ -77,6 +77,7 @@ class Simulatar:
                 'gurubot/llama3-guru:latest',
                 'wizardlm2',
                 'war-resolver',
+                'llama3:8b-text-q8_0',
                 'wizardlm-uncensored:13b-llama2-q5_K_M',
                 'wizard-vicuna-uncensored:13b',
                 'phi3',
@@ -94,10 +95,9 @@ class Simulatar:
                 selected_model_idx = int(input(input_text))
                 model = models[selected_model_idx]
             else:
-                selected_model_idx = models.index(self.model)
                 try:
-                    selected_model_idx = int(input(input_text + f'{selected_model_idx}'))
-                except ValueError as e:
+                    selected_model_idx = int(input(input_text))
+                except ValueError:
                     model = self.model
                 else:
                     model = models[selected_model_idx]
@@ -122,15 +122,15 @@ class Simulatar:
                             os.unlink('context.ids')
                 
                 try:
-                    with open('context.ids', 'r') as f:
-                        context = f.read()
+                    with open('context.ids', 'r') as file:
+                        context = file.read()
                         context = [int(str.strip(x)) for x in context.split(' ') if len(str.strip(x)) > 0]
                         self.log(f'œ continue with previous context of {len(context)} ids')
                 except FileNotFoundError:
                     context = []
                     self.log('ㆆ new empty context')
                 except Exception as e:
-                    self.log("x loading error: ", e)
+                    self.log(f"x loading error: {e}")
                 
                 if self.programmed:
                     if self.programm_current_instruction > len(self.programm_instructions) - 1:
@@ -155,6 +155,7 @@ class Simulatar:
                     'use_mmap': True,
                     'num_thread': 10,
                     'use_mlock': True,
+                    'mirostat_tau': 2.0
                     # 'stop': [
                     #     '<|end|>',
                     #     '<|user|>',
@@ -216,8 +217,8 @@ class Simulatar:
                     write_this = input(f"\nadd to memory {len(scontext)} ids? Y/n ")
                     if write_this == 'y' and 'context' in response and len(scontext) > 0:
                         self.log('∜ ', end='')
-                        with open('context.ids', 'ab') as f:
-                            f.write(scontext)
+                        with open('context.ids', 'ab') as file:
+                            file.write(scontext)
                             self.log(f"⊫ context {len(scontext)} bytes added")
                     else:
                         if os.path.exists('context.ids'):
@@ -225,8 +226,8 @@ class Simulatar:
                         else:
                             context = []
                 elif self.programm_current_instruction == 0:
-                    with open('context.ids', 'ab') as f:
-                        f.write(scontext)
+                    with open('context.ids', 'ab') as file:
+                        file.write(scontext)
                         self.log(f"\n\n∧ context {len(scontext)} bytes auto-added")
                     if os.path.exists('context.ids'):
                         context = self.read_context()
