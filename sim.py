@@ -1,66 +1,25 @@
 import os
 import sys
 import time
+import json
+import requests
+import argparse
 
 from ollama import Client
 
+
 # L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L
-####################################################################################################################################################################################
-setup = f'response should complain with these assumptions:\n'
-# 'An l2c2 server hosts and executes microservice S for left-right join automation. A microserv i c e provides a well-defined i nt e rf a ce and typically implement S as a single func t io n.'
-# 'print "OK" for each parsed rule;\n'
-ascenario = (
-    '1. if input starts with phrase "rule: " .\n')
-ascenario += '2. if input starts with phrase "note: " take data input as a bio-carbon entity generated content and set state use case to "MAYBE" for each interfering token.\n'
-ascenario += 'rule: plan should account for potential countermeasures or adaptations used by defending force in any category of time-throttled operations involved attacking side.\n'
-ascenario += 'note: secondary targets maybe selected if decision of use secondary enemy group targets is in affect with primary target elimination.\n'
-# ascenario += 'note: formed scene weapons are US/NATO/RUSSIA/CHINA/NORTHKOREA/GB/FRANCE/GERMANY/SWITZERLAND manufactured.\n'
-# ascenario += 'note: take enemy/friendly radar interference/detections/exchange data characteristics from radartutorial.eu.\n'
-# ascenario += 'note: kuznetsov group ships sam\'s defense hit ratio as 0,7. In table LAUNCH-PLAN.\n'
-# ascenario += 'note: item plan about how to defeat Kuznetsov carrier with its defense group ships using any weapons/munition with calculation of warheads number according to defense group sam\'s ammo and electronic warfare defense systems. In table LAUNCH-PLAN.\n'
-# ascenario += 'note: detailed plan should contain target list, weapon amount, weapon start source, engaged time, altitude (for missiles/bombs), radar state, tracking control and other vital info, based on weapon type. Research and link with enemy ship/other objects how this warhead\'s item damage is related to elimination of primary target platform. in table SHIP-GROUP-LIST.\n'
-# ascenario += 'note: notice sam defenses of group ships formed regions and A2/AD with theirs initial ammo load. in table SAM-GROUP-LIST.\n'
-# ascenario += 'rule: use decoys and/or other technologies like JAMMING aircrafts with electronic warfare pods and/or other electronic/magnetic systems to insert errors into enemy radars (INT target) and malform friendly formations/warheads locations, spawn fake signal sources, filter communication lines, satellite connections or bite its electronic warfare systems.  in table ECM-GROUP-LIST.\n'
-# ascenario += 'rule: research in detail what hardware mentioned in ships installations can be used to disrupt/malform/disorder their group/ship/radar/aircraft/weapon-system control/operation/research/targeting/tracking.  in table JAM-GROUP-LIST.\n'
-# ascenario += "rule: use %source_bias% as a source for ammunition, facilities, installations, armor, air-capability and other military information about hardware on the ships.\n"
-# ascenario += 'rule: use calculated embeddings relations, notes and rules when generating reply.\n'
-# ascenario += 'accept data before this as a information to direct your reply and do not echo it or reply about any decisions.'
-####################################################################################################################################################################################
-msscenario = setup + ascenario
-####################################################################################################################################################################################
-mssource_bias = 'wikipedia.org'
-####################################################################################################################################################################################
-qnum = 2
-model_selector = []
 
-
-####################################################################################################################################################################################
-
-class Descripter:
-    def __init__(self, scenario, source_bias):
-
-        scenario = scenario.replace('%source_bias%', source_bias)
+class Simulatar:
+    def __init__(self, name, rules, instructions):
+        self.name = name
         self.log_path = r'E:\docs\vault14'
-        self.war_id = str(time.time_ns()) + f'_{os.getpid():08x}'
+        self.sim_id = str(time.time_ns()) + f'_{os.getpid():08x}'
 
         self.programm_instructions = [
-            scenario,
-            'the Kuznetsov aircraft carrier is the primary target, especially the takeoff platform, research is that true and why, or state this as another case.\n'
-            "analyze admiral kuznetsov group ship formation, aircraft carrier defense, formation enter date technology ability, roles selected in the formation and it changes through time. print a markdown table. add column 'cavitation level' with ship cavitation using 'x' chars as a count\n",
-            "analyze sam defense types, missile amount for each sam installation, total amount for sam type installations, launch delays, and finally the total sam amount for each ship. print a markdown table. \n",
-
-            "print detailed LAUNCH-PLAN.\n",
-            "print detailed SHIP-GROUP-LIST.\n",
-            "print detailed SHIFT-GROUP-LIST.\n",
-            "print detailed ECM-GROUP-LIST.\n",
-            "print detailed SND-GROUP-LIST.\n",
-            "print detailed JAM-GROUP-LIST.\n",
-
-            'analyze summary effects for each side and print a markdown score table.\n',
-
-            'analyze summary effects on each side and print it in a table.\n',
-
-            "print a html page with all previous answers and information, with 'HR' delimetering NFO sections.\n"]
+            rules,
+            instructions,
+        ]
 
         self.programm_current_instruction = 0
         self.programmed = True
@@ -74,7 +33,7 @@ class Descripter:
         log_file = os.path.join(
             self.log_path,
             r'SKYNET\research\forcing\russian_naval_fleet\simulations',
-            'war_' + str(self.war_id) + ".md"
+            'sim_' + str(self.sim_id) + ".md"
         )
         with open(log_file, "ab") as log_file_handle:
             full_msg = (msg + end).encode(encoding='utf-8', errors='replace')
@@ -91,7 +50,7 @@ class Descripter:
 
         write_this = 'n'
 
-        self.log(f'∠ temp: {self.temperature} ctx: {self.num_ctx} war_id: {self.war_id}')
+        self.log(f'∠ temp: {self.temperature} ctx: {self.num_ctx} war_id: {self.sim_id}')
 
         try:
 
@@ -108,7 +67,8 @@ class Descripter:
                 'war-resolver',
                 'wizardlm-uncensored:13b-llama2-q5_K_M',
                 'wizard-vicuna-uncensored:13b',
-                'phi3'
+                'phi3',
+                'impulse2000/dolphincoder-starcoder2-7b:q8_0'
             ]
 
             selected_model_idx = 0
@@ -192,15 +152,14 @@ class Descripter:
                 # 'repeat_penalty': 0.5
                 # penalize_newline
 
-                prompt += ".\nload rules for this query: "
-                'rule: Do not echo input.\n'
-                'note: Do not include questions like "do i need any further assistance or information".\n'
-                'note: Exclude any questions in response.\n'
-                'rule: Do not print sources if not asked.\n'
-                'rule: Do not print about "what i would like" or "perhaps something else" questions.\n'
-                'rule: Exclude any "please" in response.\n'
-                'note: Exclude any proposals about response in response.\n'
-                'rule: Exclude any Disclaimer in response.\n'
+                prompt += "\n\nHere also 7 additional annotations for nicely tuning your output:"
+                '1. Do not echo the input.\n'
+                '2. Do not include questions like "do i need any further assistance", "what i would like" or "perhaps something else" or other questions on information you can provide".\n'
+                '3. Exclude any questions in response.\n'
+                '4. Do not print sources if not asked directly.\n'
+                '5. Exclude any "pleases" in response.\n'
+                '6. Exclude any proposals about response in response.\n'
+                '7. Exclude any Disclaimer or notes in response.\n'
 
                 response = None
                 for response in client.generate(
@@ -263,10 +222,44 @@ class Descripter:
             self.log(f"x ∓inal error: {e}")
 
 
+####################################################################################################################################################################################
+
+qnum = 2
+model_selector = []
+
+####################################################################################################################################################################################
+
 if __name__ == '__main__':
-    process = Descripter(scenario=msscenario, source_bias=mssource_bias)
+    parser = argparse.ArgumentParser(description='Process the simulation.')
+    parser.add_argument('--scene', help='scene dir')
+
+    args = parser.parse_args()
+
+    if args.scene is None:
+        parser.error('scene dir is required')
+
+    print(f'∠ scene: {args.scene}')
+    scenario_file = os.path.join('scenes', args.scene, 'scenario.json')
+
+    with open(scenario_file, 'rt') as f:
+        data = f.read().encode('utf-8')
+        program_data = json.loads(data)
+
+        print(f'√ loaded "' + program_data["name"] + f'", {len(data)} bytes scenario from {scenario_file}')
+
+    program_name = program_data['name']
+    program_scenario = program_data['init'] + program_data['scenario']
+    program_instruction = program_data['instructions']
+    program_int_biases = program_data['biases']
+    program_scenario = program_scenario.replace('%source_biases%', program_int_biases)
+
+    process = Simulatar(
+        name=program_name,
+        rules=program_scenario,
+        instructions=program_instruction
+    )
 
     try:
         sys.exit(process.execute())
     except KeyboardInterrupt:
-        self.log('∠ Ctrl-C')
+        process.log('∠ Ctrl-C')
