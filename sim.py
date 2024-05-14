@@ -5,6 +5,8 @@ import json
 import requests
 import argparse
 import re
+import operator
+import traceback
 
 from ollama import Client
 
@@ -12,53 +14,58 @@ from ollama import Client
 # L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L
 
 class Simulatar:
-    def __init__(self, name, rules, instructions, sim_log_path):
+    def __init__(
+            self,
+            name: str,
+            rules: [],
+            instructions: [],
+            sim_log_path: str,
+            temperature: float,
+            batch=True,
+            model=None,
+    ):
         self.name = name
+        self.model = model
         self.sim_log_path = sim_log_path
         self.log_path = r'E:\docs\vault14'
         self.sim_id = str(time.time_ns()) + f'_{os.getpid():08x}'
-
-        self.programm_instructions = [
-            rules,
-            instructions,
-        ]
-
+        self.programm_instructions = [rules] + instructions
         self.programm_current_instruction = 0
-        self.programmed = True
+        self.programmed = batch
         self.max_line_chars = 190
         self.num_ctx = 2048
-        self.temperature = 0.1
-
+        self.temperature = temperature
+    
     def log(self, msg, end='\n', flush=True):
         print(f'{msg}', end=end, flush=flush)
-
-        name = re.sub(r'[^0-9a-zA-Z_\-]', '_', self.name)
+        
+        name = re.sub(r'[^0-9a-zA-Z_\-.]', '_', self.name)
         name = name.replace("__", "_")
-
+        
         log_file = os.path.join(
             self.log_path,
             self.sim_log_path,
-            'sim_' + f"_{name}_" + str(self.sim_id) + ".md"
+            'sim_' + f"{name}_" + str(self.sim_id) + ".md"
         )
         with open(log_file, "ab") as log_file_handle:
             full_msg = (msg + end).encode(encoding='utf-8', errors='replace')
             log_file_handle.write(full_msg)
-
+    
     def read_context(self):
         with open('context.ids', 'r') as f:
             context = f.read()
             context = [int(str.strip(x)) for x in context.split(' ') if len(str.strip(x)) > 0]
         return context
-
+    
     def execute(self):
         client = Client(host='127.0.0.1')
-
+        
         write_this = 'n'
-
+        
         self.log(f'∠ temp: {self.temperature} ctx: {self.num_ctx} war_id: {self.sim_id}')
-
+        
         try:
-
+            
             models = [
                 'dolphin-phi:2.7b-v2.6-q6_K',
                 'gfg/solar-10.7b-instruct-v1.0-uncensored',
@@ -75,25 +82,35 @@ class Simulatar:
                 'phi3',
                 'impulse2000/dolphincoder-starcoder2-7b:q8_0'
             ]
-
+            
             selected_model_idx = 0
-
+            input_text = '> select model: '
+            
             for m in models:
                 self.log(f' [{selected_model_idx:-2d}] {m}')
                 selected_model_idx += 1
-
-            selected_model_idx = int(input('> select model: '))
-            model = models[selected_model_idx]
-
+            
+            if self.model is None:
+                selected_model_idx = int(input(input_text))
+                model = models[selected_model_idx]
+            else:
+                selected_model_idx = models.index(self.model)
+                try:
+                    selected_model_idx = int(input(input_text + f'{selected_model_idx}'))
+                except ValueError as e:
+                    model = self.model
+                else:
+                    model = models[selected_model_idx]
+            
             self.log(f'⋤ model: {model} [selected]')
-
+            
             context = None
-
+            
             if self.programmed:
                 self.log(f'∐ auto-remove of context')
                 if os.path.exists('context.ids'):
                     os.unlink('context.ids')
-
+            
             while True:
                 current_chars = 0
                 if os.path.exists('context.ids') and write_this != 'y':
@@ -103,7 +120,7 @@ class Simulatar:
                         if delete == 'y':
                             self.log('√ ', end='')
                             os.unlink('context.ids')
-
+                
                 try:
                     with open('context.ids', 'r') as f:
                         context = f.read()
@@ -114,7 +131,7 @@ class Simulatar:
                     self.log('ㆆ new empty context')
                 except Exception as e:
                     self.log("x loading error: ", e)
-
+                
                 if self.programmed:
                     if self.programm_current_instruction > len(self.programm_instructions) - 1:
                         self.programmed = False
@@ -129,9 +146,9 @@ class Simulatar:
                         prompt = self.programm_instructions[self.programm_current_instruction]
                 else:
                     prompt = input("Œ Enter the prompt: ")
-
+                
                 self.log(f'⅁ {model} linking embeddings relations ...')
-
+                
                 options = {
                     'temperature': self.temperature,
                     # 'num_ctx': self.num_ctx,
@@ -153,10 +170,10 @@ class Simulatar:
                 }
                 # 'num_predict': 50000,
                 # Maximum number of tokens to predict when generating text. (Default: 128, -1 = infinite generation, -2 = fill context)
-
+                
                 # 'repeat_penalty': 0.5
                 # penalize_newline
-
+                
                 prompt += "\n\nHere also 7 additional annotations for nicely tuning your output:"
                 '1. Do not echo the input.\n'
                 '2. Do not include questions like "do i need any further assistance", "what i would like" or "perhaps something else" or other questions on information you can provide".\n'
@@ -165,7 +182,7 @@ class Simulatar:
                 '5. Exclude any "pleases" in response.\n'
                 '6. Exclude any proposals about response in response.\n'
                 '7. Exclude any Disclaimer or notes in response.\n'
-
+                
                 response = None
                 for response in client.generate(
                         model=model,
@@ -177,6 +194,7 @@ class Simulatar:
                         #          '<|assistant|>{{ .Response }}<|end|>'
                 ):
                     current_chars += len(response['response'])
+                    
                     if "\n" in response['response']:
                         current_chars = 0
                         self.log(response['response'], end='', flush=True)
@@ -188,12 +206,12 @@ class Simulatar:
                         resp = response['response'].replace('\'', '')
                         if len(resp):
                             self.log(resp, end='', flush=True)
-
+                
                 scontext = b''
                 if 'context' in response:
                     scontext = ' '.join((str(x) for x in response['context'])).encode('utf-8')
                     scontext += b' '
-
+                
                 if self.programmed is False:
                     write_this = input(f"\nadd to memory {len(scontext)} ids? Y/n ")
                     if write_this == 'y' and 'context' in response and len(scontext) > 0:
@@ -216,15 +234,18 @@ class Simulatar:
                         context = []
                 else:
                     self.log(f'\n☺ context not modified')
-
+                
                 self.log(f"∄ resulted context: {len(context)} ids")
-
+                
                 if self.programmed:
                     self.programm_current_instruction += 1
-
+        
         except Exception as e:
             self.log('\n\n--')
             self.log(f"x ∓inal error: {e}")
+            print("-" * 60)
+            traceback.print_exc(file=sys.stdout)
+            print("-" * 60)
 
 
 ####################################################################################################################################################################################
@@ -237,35 +258,40 @@ model_selector = []
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process the simulation.')
     parser.add_argument('--scene', help='scene dir')
-
+    
     args = parser.parse_args()
-
+    
     if args.scene is None:
         parser.error('scene dir is required')
-
+    
     print(f'∠ scene: {args.scene}')
     scenario_file = os.path.join('scenes', args.scene, 'scenario.json')
-
+    
     with open(scenario_file, 'rt') as f:
         data = f.read().encode('utf-8')
         program_data = json.loads(data)
-
+        
         print(f'√ loaded "' + program_data["name"] + f'", {len(data)} bytes scenario from {scenario_file}')
-
+    
     program_name = program_data['name']
-    program_scenario = program_data['init'] + program_data['scenario']
+    program_rules = program_data['init'] + program_data['rules']
     program_instruction = program_data['instructions']
     program_int_biases = program_data['biases']
     program_sim_log_path = program_data['sim_log_path']
-    program_scenario = program_scenario.replace('%source_biases%', program_int_biases)
-
+    program_rules = program_rules.replace('%source_biases%', program_int_biases)
+    program_temperature = program_data['temperature']
+    program_model = program_data['model']
+    
     process = Simulatar(
         name=program_name,
-        rules=program_scenario,
+        rules=program_rules,
         instructions=program_instruction,
-        sim_log_path=program_sim_log_path
+        sim_log_path=program_sim_log_path,
+        temperature=program_temperature,
+        model=program_model,
+        batch=True
     )
-
+    
     try:
         sys.exit(process.execute())
     except KeyboardInterrupt:
