@@ -4,6 +4,7 @@ import time
 import json
 import requests
 import argparse
+import re
 
 from ollama import Client
 
@@ -11,8 +12,9 @@ from ollama import Client
 # L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L*(%$)L
 
 class Simulatar:
-    def __init__(self, name, rules, instructions):
+    def __init__(self, name, rules, instructions, sim_log_path):
         self.name = name
+        self.sim_log_path = sim_log_path
         self.log_path = r'E:\docs\vault14'
         self.sim_id = str(time.time_ns()) + f'_{os.getpid():08x}'
 
@@ -30,10 +32,13 @@ class Simulatar:
     def log(self, msg, end='\n', flush=True):
         print(f'{msg}', end=end, flush=flush)
 
+        name = re.sub(r'[^0-9a-zA-Z_\-]', '_', self.name)
+        name = name.replace("__", "_")
+
         log_file = os.path.join(
             self.log_path,
-            r'SKYNET\research\forcing\russian_naval_fleet\simulations',
-            'sim_' + str(self.sim_id) + ".md"
+            self.sim_log_path,
+            'sim_' + f"_{name}_" + str(self.sim_id) + ".md"
         )
         with open(log_file, "ab") as log_file_handle:
             full_msg = (msg + end).encode(encoding='utf-8', errors='replace')
@@ -251,12 +256,14 @@ if __name__ == '__main__':
     program_scenario = program_data['init'] + program_data['scenario']
     program_instruction = program_data['instructions']
     program_int_biases = program_data['biases']
+    program_sim_log_path = program_data['sim_log_path']
     program_scenario = program_scenario.replace('%source_biases%', program_int_biases)
 
     process = Simulatar(
         name=program_name,
         rules=program_scenario,
-        instructions=program_instruction
+        instructions=program_instruction,
+        sim_log_path=program_sim_log_path
     )
 
     try:

@@ -16,5 +16,6 @@
   ],
   "name": "russian naval warfare / elimination of kuznetsov aircraft carrier",
   "model": "impulse2000/dolphincoder-starcoder2-7b:q8_0",
-  "biases": "wikipedia.org"
+  "biases": "wikipedia.org",
+  "sim_log_path": "SKYNET\\research\\forcing\\russian_naval_fleet\\simulations"
 }
