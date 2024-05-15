@@ -62,45 +62,35 @@ class Simulatar:
         
         write_this = 'n'
         
-        self.log(f'∠ temp: {self.temperature} ctx: {self.num_ctx} war_id: {self.sim_id}')
+        self.log(f'∠ temp: {self.temperature} ctx: {self.num_ctx} sim_id: {self.sim_id}')
         
         try:
-            
-            models = [
-                'dolphin-phi:2.7b-v2.6-q6_K',
-                'gfg/solar-10.7b-instruct-v1.0-uncensored',
-                'gurubot/llama3-guru-uncensored',
-                'mannix/dolphin-2.9-llama3-8b:q5_k_m',
-                'mistral:7b',
-                'sunapi386/llama-3-lexi-uncensored:8b',
-                'dolphin-phi:2.7b-v2.6-q8_0',
-                'gurubot/llama3-guru:latest',
-                'wizardlm2',
-                'war-resolver',
-                'llama3:8b-text-q8_0',
-                'wizardlm-uncensored:13b-llama2-q5_K_M',
-                'wizard-vicuna-uncensored:13b',
-                'phi3',
-                'impulse2000/dolphincoder-starcoder2-7b:q8_0'
-            ]
-            
+            models = client.list()
+            self.log(f'∠ models:')
             selected_model_idx = 0
             input_text = '> select model: '
-            
-            for m in models:
-                self.log(f' [{selected_model_idx:-2d}] {m}')
+            sm = []
+            for m in models['models']:
+                name = m["name"]
+                sm.append(name)
+                modified = m['modified_at']
+                size_mb = float(m['size'] / 1024 / 1024 / 1024)
+                family = m['details']['family']
+                parameters = m['details']['parameter_size']
+                
+                self.log(f' [{selected_model_idx:-2d}] {name:<52} {family:>12} {size_mb:.2f}G {parameters:<12}')
                 selected_model_idx += 1
-            
+
             if self.model is None:
                 selected_model_idx = int(input(input_text))
-                model = models[selected_model_idx]
+                model = sm[selected_model_idx]
             else:
                 try:
                     selected_model_idx = int(input(input_text))
                 except ValueError:
                     model = self.model
                 else:
-                    model = models[selected_model_idx]
+                    model = sm[selected_model_idx]
             
             self.log(f'⋤ model: {model} [selected]')
             
