@@ -2,6 +2,8 @@ import os
 import sys
 import time
 import json
+
+import ollama
 import requests
 import argparse
 import re
@@ -33,7 +35,7 @@ class Simulatar:
         self.programm_current_instruction = 0
         self.programmed = batch
         self.max_line_chars = 190
-        self.num_ctx = 2048
+        self.num_ctx = 8192
         self.temperature = temperature
     
     def log(self, msg, end='\n', flush=True):
@@ -47,9 +49,9 @@ class Simulatar:
             self.sim_log_path,
             'sim_' + f"{name}_" + str(self.sim_id) + ".md"
         )
-        with open(log_file, "at") as log_file_handle:
-            full_msg = (msg + end).encode(encoding='utf-8', errors='replace')
-            log_file_handle.write(str(full_msg))
+        with open(log_file, "ab") as log_file_handle:
+            full_msg = (msg + end).encode(encoding='utf-8', errors='ignore')
+            log_file_handle.write(full_msg)
     
     def read_context(self):
         with open('context.ids', 'r') as file:
@@ -62,7 +64,7 @@ class Simulatar:
         
         write_this = 'n'
         
-        self.log(f'∠ temp: {self.temperature} ctx: {self.num_ctx} sim_id: {self.sim_id}')
+        self.log(f'> temp: {self.temperature} ctx: {self.num_ctx} sim_id: {self.sim_id}')
         
         try:
             models = client.list()
@@ -78,9 +80,9 @@ class Simulatar:
                 family = m['details']['family']
                 parameters = m['details']['parameter_size']
                 
-                self.log(f' [{selected_model_idx:-2d}] {name:<52} {family:>12} {size_mb:.2f}G {parameters:<12}')
+                self.log(f' [{selected_model_idx:-2d}] {size_mb:.2f}G {name:_<52} {parameters:_<12} {family:<12}')
                 selected_model_idx += 1
-
+            
             if self.model is None:
                 selected_model_idx = int(input(input_text))
                 model = sm[selected_model_idx]
@@ -93,7 +95,12 @@ class Simulatar:
                     model = sm[selected_model_idx]
             
             self.log(f'⋤ model: {model} [selected]')
-            
+            inf = client.show(model)
+            self.log(' stop=' + inf['parameters']['stop'])
+            self.log(' template=' + inf['parameters']['template'])
+            self.log(' family=' + inf['parameters']['details']['family'])
+            self.log(' parameter_size=' + inf['parameters']['details']['parameter_size'])
+            self.log(' quantization_level=' + inf['parameters']['details']['quantization_level'])
             context = None
             
             if self.programmed:
@@ -143,9 +150,9 @@ class Simulatar:
                     'temperature': self.temperature,
                     # 'num_ctx': self.num_ctx,
                     'use_mmap': True,
-                    'num_thread': 10,
+                    'num_thread': 8,
                     'use_mlock': True,
-                    'mirostat_tau': 2.0
+                    # 'mirostat_tau': 2.0
                     # 'stop': [
                     #     '<|end|>',
                     #     '<|user|>',
@@ -165,14 +172,14 @@ class Simulatar:
                 # 'repeat_penalty': 0.5
                 # penalize_newline
                 
-                prompt += "\n\nHere also 7 additional annotations for nicely tuning your output:"
-                '1. Do not echo the input.\n'
-                '2. Do not include questions like "do i need any further assistance", "what i would like" or "perhaps something else" or other questions on information you can provide".\n'
-                '3. Exclude any questions in response.\n'
-                '4. Do not print sources if not asked directly.\n'
-                '5. Exclude any "pleases" in response.\n'
-                '6. Exclude any proposals about response in response.\n'
-                '7. Exclude any Disclaimer or notes in response.\n'
+                prompt += "\n\nHere also 7 additionals for nicely tuning your output:"
+                'rule: 1. Do not echo the input.\n'
+                'rule: 2. Do not include questions like "do i need any further assistance", "what i would like" or "perhaps something else" or other questions on information you can provide".\n'
+                'rule: 3. Exclude any questions in response.\n'
+                'rule: 4. Do not print sources if not asked directly.\n'
+                'rule: 5. Exclude any "pleases" in response.\n'
+                'rule: 6. Exclude any proposals about response in response.\n'
+                'rule: 7. Exclude any Disclaimer or notes in response.\n'
                 
                 response = None
                 for response in client.generate(
@@ -200,7 +207,7 @@ class Simulatar:
                 
                 scontext = b''
                 if 'context' in response:
-                    scontext = ' '.join((str(x) for x in response['context'])).encode('utf-8')
+                    scontext = ' '.join((str(x) for x in response['context'])).encode('utf-8', 'ignore')
                     scontext += b' '
                 
                 if self.programmed is False:
@@ -233,7 +240,7 @@ class Simulatar:
         
         except Exception as e:
             self.log('\n\n--')
-            self.log(f"x ∓inal error: {e}")
+            self.log(f"x∓in al error: {e}")
             print("-" * 60)
             traceback.print_exc(file=sys.stdout)
             print("-" * 60)
@@ -286,4 +293,4 @@ if __name__ == '__main__':
     try:
         sys.exit(process.execute())
     except KeyboardInterrupt:
-        process.log('∠ Ctrl-C')
+        process.log('√ Ctrl-∠')
