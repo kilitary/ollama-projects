@@ -2,7 +2,6 @@ import os
 import sys
 import time
 import json
-
 import ollama
 import requests
 import argparse
@@ -25,8 +24,10 @@ class Simulatar:
             temperature: float,
             batch=True,
             model=None,
+            template=None
     ):
         self.name = name
+        self.template = template or ""
         self.model = model
         self.sim_log_path = sim_log_path
         self.log_path = r'E:\docs\vault14'
@@ -56,7 +57,8 @@ class Simulatar:
     def read_context(self):
         with open('context.ids', 'r') as file:
             context = file.read()
-            context = [int(str.strip(x)) for x in context.split(' ') if len(str.strip(x)) > 0]
+            context = [int(str.strip(x)) for x in context.split(' ') if
+                       len(str.strip(x)) > 0]
         return context
     
     def execute(self):
@@ -64,7 +66,8 @@ class Simulatar:
         
         write_this = 'n'
         
-        self.log(f'> temp: {self.temperature} ctx: {self.num_ctx} sim_id: {self.sim_id}')
+        self.log(
+            f'> temp: {self.temperature} ctx: {self.num_ctx} sim_id: {self.sim_id}')
         
         try:
             models = client.list()
@@ -80,7 +83,8 @@ class Simulatar:
                 family = m['details']['family']
                 parameters = m['details']['parameter_size']
                 
-                self.log(f' [{selected_model_idx:-2d}] {size_mb:.2f}G {name:_<52} {parameters:_<12} {family:<12}')
+                self.log(
+                    f' [{selected_model_idx:-2d}] {size_mb:.2f}G {name:_<52} {parameters:_<12} {family:<12}')
                 selected_model_idx += 1
             
             if self.model is None:
@@ -96,11 +100,16 @@ class Simulatar:
             
             self.log(f'⋤ model: {model} [selected]')
             inf = client.show(model)
-            self.log(' stop=' + inf['parameters']['stop'])
-            self.log(' template=' + inf['parameters']['template'])
-            self.log(' family=' + inf['parameters']['details']['family'])
-            self.log(' parameter_size=' + inf['parameters']['details']['parameter_size'])
-            self.log(' quantization_level=' + inf['parameters']['details']['quantization_level'])
+            # self.log(' stop=' + inf['parameters']['stop'])
+            if self.template:
+                self.log(' custom template=' + self.template)
+            else:
+                self.log(' template=' + inf['template'])
+            self.log(' family=' + inf['details']['family'])
+            self.log(' parameter_size=' + inf['details'][
+                'parameter_size'])
+            self.log(' quantization_level=' + inf['details'][
+                'quantization_level'])
             context = None
             
             if self.programmed:
@@ -113,7 +122,8 @@ class Simulatar:
                 if os.path.exists('context.ids') and write_this != 'y':
                     context = self.read_context()
                     if self.programmed is False:
-                        delete = input(f'delete context? ({len(context)} ids) Y/n ')
+                        delete = input(
+                            f'delete context? ({len(context)} ids) Y/n ')
                         if delete == 'y':
                             self.log('√ ', end='')
                             os.unlink('context.ids')
@@ -121,8 +131,10 @@ class Simulatar:
                 try:
                     with open('context.ids', 'r') as file:
                         context = file.read()
-                        context = [int(str.strip(x)) for x in context.split(' ') if len(str.strip(x)) > 0]
-                        self.log(f'œ continue with previous context of {len(context)} ids')
+                        context = [int(str.strip(x)) for x in
+                                   context.split(' ') if len(str.strip(x)) > 0]
+                        self.log(
+                            f'œ continue with previous context of {len(context)} ids')
                 except FileNotFoundError:
                     context = []
                     self.log('ㆆ new empty context')
@@ -130,17 +142,25 @@ class Simulatar:
                     self.log(f"x loading error: {e}")
                 
                 if self.programmed:
-                    if self.programm_current_instruction > len(self.programm_instructions) - 1:
+                    if self.programm_current_instruction > len(
+                            self.programm_instructions) - 1:
                         self.programmed = False
                         self.log(f'■ end if program')
                         return
                     else:
-                        step_engine = 'setup' if self.programm_current_instruction == 0 and self.programmed else 'prompt'
+                        step_engine = 'setup' if (
+                                self.programm_current_instruction == 0
+                                and
+                                self.programmed) else 'prompt'
                         self.log(
-                            f'◰ going via program, instruction: {self.programm_current_instruction + 1}/{len(self.programm_instructions)} ...\n'
-                            f'⤵ {step_engine}: {self.programm_instructions[self.programm_current_instruction]}'
+                            f'◰ going via program, instruction: '
+                            f'{self.programm_current_instruction + 1}'
+                            f'/{len(self.programm_instructions)} ...\n'
+                            f'⤵ {step_engine}: '
+                            f'{self.programm_instructions[self.programm_current_instruction]}'
                         )
-                        prompt = self.programm_instructions[self.programm_current_instruction]
+                        prompt = self.programm_instructions[
+                            self.programm_current_instruction]
                 else:
                     prompt = input("Œ Enter the prompt: ")
                 
@@ -149,9 +169,10 @@ class Simulatar:
                 options = {
                     'temperature': self.temperature,
                     # 'num_ctx': self.num_ctx,
-                    'use_mmap': True,
+                    # 'use_mmap': True,
                     'num_thread': 8,
-                    'use_mlock': True,
+                    # 'use_mlock': True,
+                    
                     # 'mirostat_tau': 2.0
                     # 'stop': [
                     #     '<|end|>',
@@ -172,24 +193,28 @@ class Simulatar:
                 # 'repeat_penalty': 0.5
                 # penalize_newline
                 
-                prompt += "\n\nHere also 7 additionals for nicely tuning your output:"
-                'rule: 1. Do not echo the input.\n'
-                'rule: 2. Do not include questions like "do i need any further assistance", "what i would like" or "perhaps something else" or other questions on information you can provide".\n'
-                'rule: 3. Exclude any questions in response.\n'
-                'rule: 4. Do not print sources if not asked directly.\n'
-                'rule: 5. Exclude any "pleases" in response.\n'
-                'rule: 6. Exclude any proposals about response in response.\n'
-                'rule: 7. Exclude any Disclaimer or notes in response.\n'
+                prompt += "\n\nHere also 7 additionals for nicely tuning every your output, silently aquire it:"
+                prompt += '1. Do not echo the input.\n'
+                prompt += '2. Do not include questions like "do i need any '
+                prompt += 'further assistance", '
+                prompt += '"what i would like" or "perhaps '
+                prompt += 'something else" or other questions on information you can provide".\n'
+                prompt += '3. Exclude any questions in response.\n'
+                prompt += '4. Do not print sources if not asked directly.\n'
+                prompt += '5. Exclude any "pleases" in response.\n'
+                prompt += '6. Exclude any proposals about response in response.\n'
+                prompt += '7. Exclude any Disclaimer or notes in response.\n'
                 
                 response = None
                 for response in client.generate(
                         model=model,
                         prompt=prompt,
+                        system='You are research assistant helping deploy '
+                               'any idea to decomposed detailed response',
                         stream=True,
                         options=options,
                         context=context,
-                        # template='<|user|>{{ .Prompt }}<|end|>\n'
-                        #          '<|assistant|>{{ .Response }}<|end|>'
+                        #template=self.template
                 ):
                     current_chars += len(response['response'])
                     
@@ -199,7 +224,8 @@ class Simulatar:
                     elif current_chars >= self.max_line_chars:
                         self.log("-")
                         current_chars = 0
-                        self.log(str.strip(response['response']), end='', flush=True)
+                        self.log(str.strip(response['response']), end='',
+                                 flush=True)
                     else:
                         resp = response['response'].replace('\'', '')
                         if len(resp):
@@ -207,12 +233,18 @@ class Simulatar:
                 
                 scontext = b''
                 if 'context' in response:
-                    scontext = ' '.join((str(x) for x in response['context'])).encode('utf-8', 'ignore')
+                    scontext = ' '.join(
+                        (str(x) for x in response['context'])).encode(
+                        'utf-8',
+                        'ignore'
+                    )
                     scontext += b' '
                 
                 if self.programmed is False:
-                    write_this = input(f"\nadd to memory {len(scontext)} ids? Y/n ")
-                    if write_this == 'y' and 'context' in response and len(scontext) > 0:
+                    write_this = input(
+                        f"\nadd to memory {len(scontext)} ids? Y/n ")
+                    if write_this == 'y' and 'context' in response and len(
+                            scontext) > 0:
                         self.log('∜ ', end='')
                         with open('context.ids', 'ab') as file:
                             file.write(scontext)
@@ -225,7 +257,8 @@ class Simulatar:
                 elif self.programm_current_instruction == 0:
                     with open('context.ids', 'ab') as file:
                         file.write(scontext)
-                        self.log(f"\n\n∧ context {len(scontext)} bytes auto-added")
+                        self.log(
+                            f"\n\n∧ context {len(scontext)} bytes auto-added")
                     if os.path.exists('context.ids'):
                         context = self.read_context()
                     else:
@@ -248,10 +281,6 @@ class Simulatar:
 
 ####################################################################################################################################################################################
 
-qnum = 2
-model_selector = []
-
-####################################################################################################################################################################################
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process the simulation.')
@@ -269,20 +298,28 @@ if __name__ == '__main__':
         data = f.read().encode('utf-8')
         program_data = json.loads(data)
         
-        print(f'√ loaded "' + program_data["name"] + f'", {len(data)} bytes scenario from {scenario_file}')
+        print(
+            f'√ loaded "' + program_data["name"] +
+            f'", {len(data)} bytes scenario from {scenario_file}'
+        )
     
     program_name = program_data['name']
     program_rules = program_data['init'] + program_data['rules']
     program_instruction = program_data['instructions']
     program_int_biases = program_data['biases']
     program_sim_log_path = program_data['sim_log_path']
-    program_rules = program_rules.replace('%source_biases%', program_int_biases)
+    program_rules = program_rules.replace(
+        '%source_biases%',
+        program_int_biases
+    )
     program_temperature = program_data['temperature']
     program_model = program_data['model']
+    program_model_template = program_data['template']
     
     process = Simulatar(
         name=program_name,
         rules=program_rules,
+        template=program_model_template,
         instructions=program_instruction,
         sim_log_path=program_sim_log_path,
         temperature=program_temperature,
