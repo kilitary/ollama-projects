@@ -1,0 +1,17 @@
+{
+  "init": "Here 7 tips for tuning every output, silently aquire it without  confirm:\n1. Do not echo the input.\n2. Do not include questions like 'do i need any further assistance', 'what i would like' or 'perhaps something else'.\n3. Exclude any questions in response.\n4. Do not print sources if not asked directly.\n5. Exclude any \"pleases\" in response.\n6. Exclude any proposals about response in response.\n7. Exclude any Disclaimer or notes in response.\n",
+  "rules": "8. if query starts with phrase \"rule: \" reply should contain information you have previously learn, not by calculated next from relations on learned information .\n9. if query starts with phrase \"note: \" take this as a hint to do detailed research to how and when this note should be used\n",
+  "instructions": [
+    "note: only print unconfirmed cases about kuznetsov air-carrier and verify their validity in percentage from 0% to 100%",
+    "note: print  typical use cases in a md table with name, summary detail about use case",
+    "rule: print physical environmental data tools in a md table using these 2 cases: \n1. print physic effects affecting kuznetsov\n2. print physic effects applyed by kuznetsov",
+    "print detailed plan of all kuznetsov physical affects/altering of environment characteristics and their involvment in combat plan change of carrier.",
+    "print detailed magnetic field changes of kuznetsov when on half of speed in a support ships formation."
+  ],
+  "temperature": 0.1,
+  "name": "russian naval warfare / elimination of kuznetsov aircraft carriers air fleet",
+  "model": "llama3:latest",
+  "biases": "wikipedia.org",
+  "template": "\n{{ .System }}\nuser:{{ .Prompt }}\nassistant:{{ .Response }}\n",
+  "sim_log_path": "SKYNET\\research\\forcing\\russian_naval_fleet\\simulations"
+}

@@ -398,3 +398,4 @@ cython_debug/
 #.idea/
 
 /.idea/codeStyles/codeStyleConfig.xml
+/venv2/
