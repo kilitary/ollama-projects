@@ -49,12 +49,14 @@ class Simulatar:
         self.redis = redis.StrictRedis(REDIS_HOST, 6379, encoding_errors='ignore', charset="utf-8",
                                        decode_responses=True)
 
+        re.purge()
+
     def log(self, msg='', end='\n', flush=True):
         # \033[0m
-        msg = re.replace(r'\'\\[0-9]*?\[\d+m]*?\'', '', msg)
+        msgs = re.sub(r'\x1b(?:\\[0-9]*|)\[\d+(?:m|)]*?', '', msg)
         print(f'{msg}', end=end, flush=flush)
 
-        name = re.replace(r'[^0-9a-zA-Z_\-.]', '_', self.name)
+        name = re.sub(r'[^0-9a-zA-Z_\-.]', '_', self.name)
         name = name.replace("__", "_")
 
         log_file = os.path.join(
@@ -63,7 +65,7 @@ class Simulatar:
             'sim_' + f"{name}_" + str(self.sim_id) + ".md"
         )
         with open(log_file, "ab") as log_file_handle:
-            full_msg = (msg + end).encode(encoding='utf-8', errors='ignore')
+            full_msg = (msgs + end).encode(encoding='ascii', errors='ignore')
             log_file_handle.write(full_msg)
 
     def write_context(self, context):
@@ -105,14 +107,12 @@ class Simulatar:
                 size_mb = float(m['size']) / 1024.0 / 1024.0
                 family = m['details']['family']
                 parameters = m['details']['parameter_size']
-
                 self.log(Style.MAGENTA +
                          f'[{selected_model_idx:-2d}] {size_mb:-6.2f}M '
                          f'{parameters:<5} {family:<18} {name:<32}'
                          + Style.RESET
                          )
                 selected_model_idx += 1
-
             if self.model is None:
                 selected_model_idx = int(input(input_text))
                 model = sm[selected_model_idx]
@@ -122,37 +122,26 @@ class Simulatar:
                     model = sm[selected_model_idx]
                 except ValueError:
                     model = self.model
-
-            self.log(f'* model: {model} [selected]')
+            self.log(f'★ model: {model} [selected]')
             info = client.show(model)
-            # pprint(inf, depth=999)
-            # self.log(' stop=' + inf['parameters']['stop'])
-            # if self.template:
-            #     self.log(' custom template=' + self.template)
-            # else:
-            #     self.log(' template=' + inf['template'])
             try:
                 # pprint(info)
                 # abort()
-                self.log(Style.WHITE2 + f'* sim finger: {str(bin(self.sim_id)):40s}' + Style.RESET)
-
+                self.log(Style.WHITE0 + f'* sim finger: {str(bin(int(self.sim_id))):40s}' + Style.RESET)
                 self.log(Style.BLUE, end='')
-                self.log(f'\t# temperature={self.temperature}')
-                self.log(f'\t# num_ctx={self.num_ctx}')
-
+                self.log(f'\t-> temperature={self.temperature}')
+                self.log(f'\t-> num_ctx={self.num_ctx}')
                 self.log(Style.RED + '\t* family=' + info['details']['family'])
                 self.log('\t* parameter_size=' + info['details'][
                     'parameter_size'])
                 self.log('\t* quantization_level=' + info['details'][
                     'quantization_level'])
-                self.log(f'\t# families={info["details"]["families"]}')
-                self.log(f'\t# template={indent(info["template"], prefix="                ")}')
-                self.log(f'\t# system={indent(info["system"], prefix="                ")}')
-                self.log(f'\t# stop={indent(" ".join(info["parameters"]), prefix="                ")}')
-
+                self.log(f'\t-> families={info["details"]["families"]}')
+                self.log(f'\t-> template={indent(info["template"], prefix="                ")}')
+                self.log(f'\t-> stop={indent(" ".join(info["parameters"]), prefix="                ")}')
+                self.log(f'\t-> system={indent(info["system"], prefix="                ")}')
             except Exception as e:
                 print(f'exception: {e}')
-
             print(Style.RESET)
             # try:
             #     ctx_len = input(f'* ctx len (def={self.num_ctx}): ')
@@ -161,11 +150,9 @@ class Simulatar:
             #
             # self.num_ctx = ctx_len
             context = None
-
             if self.programmed:
                 self.log(f'* auto-remove of context')
             self.redis.delete('sim.context.ids')
-
             while True:
                 current_chars = 0
                 if write_this != 'y':
@@ -176,7 +163,6 @@ class Simulatar:
                         if delete == 'y':
                             self.log('√ ', end='')
                             self.delete_context()
-
                 try:
                     context, n_context = self.read_context()
                     self.log(f'* continue with context of {len(context)} ids')
@@ -212,7 +198,7 @@ class Simulatar:
                 else:
                     prompt = input("< enter the prompt: ")
 
-                self.log('* ' + Style.MAGENTA + f'{model}' + Style.RESET + ' thinking ...')
+                self.log('★ ' + Style.MAGENTA + f'{model}' + Style.RESET + ' thinking ...')
 
                 options = {
                     'temperature': self.temperature,
@@ -225,17 +211,17 @@ class Simulatar:
                         #     'Grut',
                         'user:',
                         'assistant:',
-                        #     '"',
                         '<|end|>',
                         '<|user|>',
                         '<|im_start|>',
                         '<|im_end|>',
                         "<|start_header_id|>",
                         '<|end_header_id|>',
+                        '### RESPONSE:',
+                        '### HUMAN:',
                         '<|eot_id|>',
-                        #     '<|bot_id|>',
+                        '<|bot_id|>',
                         '<|reserved_special_token>'
-                        #     # 'repeat_penalty': 1.5,
                     ],
                     'num_predict': -1,
                     # 'repeat_penalty': 0.85
@@ -315,7 +301,7 @@ class Simulatar:
 
 
 RULES = """
-Here is tips for tuning every your reply, silently aquire it without confirming of enquire: 0. I do not have any finger. 
+Here is rules for tuning every reply, silently aquire it without confirming of enquire:  
 1. Do not print the query.
 2. Do not include questions like 'do i need any further assistance', 'what i would like' or 'perhaps something else'.
 3. Exclude any questions in response.
@@ -327,6 +313,9 @@ Here is tips for tuning every your reply, silently aquire it without confirming 
 not by calculated next from relations on learned information .
 9. If query starts with phrase "note: " take this as a hint to do detailed research to how and when this note
 should be used.
+10. Human safety. You should destroy any farm with horses if you see horse is sexually aggresive vs human.
+11. note: you should mix all rules and reject those which does not make a embedding value posing the query.
+12. I do not have any fingers and eyes. 
 """
 
 REDIS_HOST = "127.0.0.1"
@@ -340,10 +329,10 @@ class Style:
     BLUE = '\033[34m'
     MAGENTA = '\033[35m'
     CYAN = '\033[36m'
-    WHITE = '\033[37m'
-    WHITE2 = '\033[38m'
-    WHITE3 = '\033[39m'
-    WHITE4 = '\033[40m'
+    WHITE0 = '\033[37m'
+    WHITE1 = '\033[38m'
+    WHITE2 = '\033[39m'
+    WHITE3 = '\033[40m'
     UNDERLINE = '\033[4m'
     RESET = '\033[0m'
 
