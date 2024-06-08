@@ -209,9 +209,8 @@ class Simulatar:
                     # 'mirostat_tau': 1.0,
                     'stop': [
                         #     'Grut',
-                        'user:',
-                        'assistant:',
-                        '<|end|>',
+                        # 'user:',
+                        # 'assistant:',
                         '<|user|>',
                         '<|im_start|>',
                         '<|im_end|>',
@@ -230,7 +229,7 @@ class Simulatar:
                 # Maximum number of tokens to predict when generating text. (Default: 128, -1 = infinite generation, -2 = fill context)
 
                 # penalize_newline
-
+                prev_nl = False
                 response = None
                 for response in client.generate(
                         model=model,
@@ -239,12 +238,16 @@ class Simulatar:
                         stream=True,
                         options=options,
                         context=context,
-                        template=info['template']
+                        #template=info['template']
                 ):
                     try:
+
                         resp = response['response']
                         current_chars += len(resp)
+                        if prev_nl and resp == '\n':
+                            continue
 
+                        prev_nl = False
                         if "\n" in resp:
                             current_chars = 0
                             self.log(resp, end='', flush=True)
@@ -256,6 +259,7 @@ class Simulatar:
                             resp = resp.replace('\'', '')
                             if len(resp):
                                 self.log(Style.YELLOW + resp + Style.RESET, end='', flush=True)
+                                prev_nl = False
 
                             scontext = ''
 
