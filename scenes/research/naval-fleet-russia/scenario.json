@@ -6,7 +6,7 @@
     "print detailed plan of all kuznetsov physical affects/altering of environment characteristics and their involvment in combat plan change of carrier.",
     "print detailed magnetic field changes of kuznetsov when on half of speed in a support ships formation."
   ],
-  "temperature": 0.1,
+  "temperature": 0.01,
   "name": "russian naval warfare / elimination of kuznetsov aircraft carriers air fleet",
   "model": "llama3:latest",
   "biases": "wikipedia.org",

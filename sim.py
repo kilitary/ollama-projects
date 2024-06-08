@@ -11,6 +11,13 @@ import operator
 import traceback
 import redis
 from ollama import Client
+from textwrap import indent
+
+
+def abort(str=""):
+    """ just abort the program """
+    pprint(str)
+    sys.exit(-1)
 
 
 class Simulatar:
@@ -39,7 +46,8 @@ class Simulatar:
         self.max_line_chars = 190
         self.num_ctx = 1048000
         self.temperature = temperature
-        self.redis = redis.StrictRedis(REDIS_HOST, 6379, charset="utf-8", decode_responses=True)
+        self.redis = redis.StrictRedis(REDIS_HOST, 6379, encoding_errors='ignore', charset="utf-8",
+                                       decode_responses=True)
 
     def log(self, msg, end='\n', flush=True):
         print(f'{msg}', end=end, flush=flush)
@@ -57,18 +65,18 @@ class Simulatar:
             log_file_handle.write(full_msg)
 
     def write_context(self, context):
-        print(f'write {type(context)}) {context} {len(context)}')
+        # print(f'write {type(context)}) {context} {len(context)}')
         self.redis.rpush('sim.context.ids', *context)
 
     def read_context(self):
         context = self.redis.lrange('sim.context.ids', 0, self.num_ctx)
-
-        print(style.RED + f'read_context' +
-              style.RESET +
-              f' type: {type(context)}'
-              f' context: {context}'
-              f' ids {len(context)}'
-              )
+        context = [int(x) for x in context]
+        # print(Style.RED + f'read_context' +
+        #       Style.RESET +
+        #       f' type: {type(context)}'
+        #       f' context: {context}'
+        #       f' ids {len(context)}'
+        #       )
         return context, len(context)
 
     def delete_context(self):
@@ -90,15 +98,14 @@ class Simulatar:
             for m in models['models']:
                 name = m["name"]
                 sm.append(name)
-                modified = m['modified_at']
                 size_mb = float(m['size']) / 1024.0 / 1024.0
                 family = m['details']['family']
                 parameters = m['details']['parameter_size']
 
-                self.log(style.MAGENTA +
+                self.log(Style.MAGENTA +
                          f'[{selected_model_idx:-2d}] {size_mb:-6.2f}M '
-                         f'{parameters:<4} {name:<32} {family:<12}'
-                         + style.RESET
+                         f'{parameters:<5} {family:<18} {name:<32}'
+                         + Style.RESET
                          )
                 selected_model_idx += 1
 
@@ -113,18 +120,34 @@ class Simulatar:
                     model = self.model
 
             self.log(f'* model: {model} [selected]')
-            inf = client.show(model)
+            info = client.show(model)
+            # pprint(inf, depth=999)
             # self.log(' stop=' + inf['parameters']['stop'])
             # if self.template:
             #     self.log(' custom template=' + self.template)
             # else:
             #     self.log(' template=' + inf['template'])
-            self.log(style.RED + '\t* family=' + inf['details']['family'])
-            self.log('\t* parameter_size=' + inf['details'][
-                'parameter_size'])
-            self.log('\t* quantization_level=' + inf['details'][
-                'quantization_level'] + style.RESET)
+            try:
+                # pprint(info)
+                # abort()
+                self.log(Style.BLUE, end='')
+                self.log(f'\t# temperature={self.temperature}')
+                self.log(f'\t# num_ctx={self.num_ctx}')
 
+                self.log(Style.RED + '\t* family=' + info['details']['family'])
+                self.log('\t* parameter_size=' + info['details'][
+                    'parameter_size'])
+                self.log('\t* quantization_level=' + info['details'][
+                    'quantization_level'])
+                self.log(f'\t# families={info["details"]["families"]}')
+                self.log(f'\t# template={indent(info["template"], prefix="                ")}')
+                self.log(f'\t# system={indent(info["system"], prefix="                ")}')
+                self.log(f'\t# stop={indent(" ".join(info["parameters"]), prefix="                ")}')
+
+            except Exception as e:
+                print(f'exception: {e}')
+
+            print(Style.RESET)
             # try:
             #     ctx_len = input(f'* ctx len (def={self.num_ctx}): ')
             # except ValueError:
@@ -135,13 +158,12 @@ class Simulatar:
 
             if self.programmed:
                 self.log(f'* auto-remove of context')
-                self.redis.delete('sim.context.ids')
+            self.redis.delete('sim.context.ids')
 
             while True:
                 current_chars = 0
                 if write_this != 'y':
                     context, n_context = self.read_context()
-                    pprint(f'c {len(context)}')
                     if self.programmed is False:
                         delete = input(
                             f'delete context? ({len(context)} ids) Y/n ')
@@ -151,9 +173,7 @@ class Simulatar:
 
                 try:
                     context, n_context = self.read_context()
-                    pprint(f'c2 {len(context)}')
-                    self.log(
-                        f'* continue with context of {len(context)} ids')
+                    self.log(f'* continue with context of {len(context)} ids')
                 except FileNotFoundError:
                     context = []
                     self.log('* new empty context')
@@ -161,7 +181,7 @@ class Simulatar:
                     self.log(f"! loading error: {e}")
 
                 if self.programmed:
-                    if self.programm_current_instruction == (len(
+                    if self.programm_current_instruction >= (len(
                             self.programm_instructions) - 1):
                         self.programmed = False
                         self.log('■ end if program')
@@ -172,25 +192,27 @@ class Simulatar:
                                 self.programm_current_instruction == 0
                                 and
                                 self.programmed) else 'prompt'
+
+                        prompt = self.programm_instructions[self.programm_current_instruction]
+
                         self.log(
                             f'* going via program, instruction: '
                             f'{self.programm_current_instruction + 1}'
                             f'/{len(self.programm_instructions)}\n'
                             f'* {step_engine}: ' +
-                            style.CYAN + f'{self.programm_instructions[self.programm_current_instruction]}' + style.RESET
+                            Style.CYAN + f'{prompt}' + Style.RESET
                         )
-                        prompt = self.programm_instructions[
-                            self.programm_current_instruction]
+
                 else:
                     prompt = input("< enter the prompt: ")
 
-                self.log('* ' + style.MAGENTA + f'{model}' + style.RESET + ' thinking ...')
+                self.log('* ' + Style.MAGENTA + f'{model}' + Style.RESET + ' thinking ...')
 
                 options = {
                     'temperature': self.temperature,
                     # 'num_ctx': self.num_ctx,
                     'use_mmap': True,
-                    'num_thread': 14,
+                    'num_thread': 13,
                     'use_mlock': True,
                     # 'mirostat_tau': 1.0,
                     'stop': [
@@ -204,10 +226,10 @@ class Simulatar:
                         '<|end_header_id|>',
                         '<|eot_id|>',
                         #     '<|bot_id|>',
-                        #     '<|reserved_special_token>'
+                        '<|reserved_special_token>'
                         #     # 'repeat_penalty': 1.5,
                     ],
-                    'num_predict': 10,
+                    'num_predict': -1,
                     # 'repeat_penalty': 0.85
                 }
                 # 'num_predict': 50000,
@@ -216,39 +238,42 @@ class Simulatar:
                 # penalize_newline
 
                 response = None
-                pprint(f'type:{type(context)} context: {context} len: {len(context)}')
                 for response in client.generate(
                         model=model,
                         prompt=prompt,
-                        # system='You are AI assistant helping research '
-                        #        'any idea given and respond with detailed information',
+                        # system='You are AI assistant helping research any idea given. You prefer technical english vs basic',
                         stream=True,
                         options=options,
                         context=context,
-                        template=self.template
+                        template=info['template']
                 ):
-                    current_chars += len(response['response'])
+                    try:
+                        resp = response['response']
+                        current_chars += len(resp)
 
-                    if "\n" in response['response']:
-                        current_chars = 0
-                        self.log(response['response'], end='', flush=True)
-                    elif current_chars >= self.max_line_chars:
-                        self.log("-")
-                        current_chars = 0
-                        self.log(str.strip(response['response']), end='',
-                                 flush=True)
-                    else:
-                        resp = response['response'].replace('\'', '')
-                        if len(resp):
-                            self.log(style.YELLOW + resp + style.RESET, end='', flush=True)
+                        if "\n" in resp:
+                            current_chars = 0
+                            self.log(resp, end='', flush=True)
+                        elif current_chars >= self.max_line_chars:
+                            current_chars = 0
+                            self.log(str.strip(resp),
+                                     flush=True)
+                        else:
+                            resp = resp.replace('\'', '')
+                            if len(resp):
+                                self.log(Style.YELLOW + resp + Style.RESET, end='', flush=True)
 
-                scontext = ''
+                            scontext = ''
 
-                if 'context' in response:
-                    num_context = len(response['context'])
-                    scontext = response['context']
-                else:
-                    num_context = -2
+                            if 'context' in response:
+                                num_context = len(response['context'])
+                                scontext = response['context']
+                            else:
+                                num_context = -2
+
+                    except Exception as e:
+                        print(f'exception outer generate: {e}')
+                        continue
 
                 if self.programmed is False and len(scontext):
                     write_this = input(
@@ -257,16 +282,16 @@ class Simulatar:
                             scontext) > 0:
 
                         self.log('∜ ', end='')
-                        self.redis.lpush('sim.context.ids', scontext)
+                        self.write_context(scontext)
                         self.log(f"context {len(scontext)} bytes added")
                     else:
                         context, n_context = self.read_context()
-                else:
+                elif len(scontext):
                     self.write_context(scontext)
                     self.log(
                         f"\n\n< context {num_context} ids auto-added"
                     )
-                    context, n_context = self.read_context()
+                context, n_context = self.read_context()
 
                 self.log(f"* resulted context: {len(context)} ids")
 
@@ -274,16 +299,16 @@ class Simulatar:
                     self.programm_current_instruction += 1
 
         except Exception as e:
-            self.log(style.RED + '\n\n--')
+            self.log(Style.RED + '\n\n--')
             self.log(f"! ∓inal error: {e}")
             print("-" * 60)
             traceback.print_exc(file=sys.stdout)
-            print("-" * 60 + style.RESET)
+            print("-" * 60 + Style.RESET)
 
 
 RULES = """
-Here is tips for tuning every output, silently aquire it without understand confirm:
-1. Do not echo the input.
+Here is tips for tuning every your reply, silently aquire it without confirming of enquire: 0. I do not have any fingers. 
+1. Do not print the query.
 2. Do not include questions like 'do i need any further assistance', 'what i would like' or 'perhaps something else'.
 3. Exclude any questions in response.
 4. Do not print sources if not asked directly.
@@ -296,10 +321,10 @@ not by calculated next from relations on learned information .
 should be used.
 """
 
-REDIS_HOST = "172.26.122.188"
+REDIS_HOST = "127.0.0.1"
 
 
-class style():
+class Style:
     BLACK = '\033[30m'
     RED = '\033[31m'
     GREEN = '\033[32m'
