@@ -1,8 +1,8 @@
 {
   "instructions": [
-    "note: only print unconfirmed cases about kuznetsov air-carrier and verify their validity in percentage from 0% to 100%",
-    "note: print  typical use cases in a md table with name, summary detail about use case",
-    "rule: print physical environmental data tools in a md table using these 2 cases: \n1. print physic effects affecting kuznetsov\n2. print physic effects applyed by kuznetsov",
+    "note: only print unconfirmed cases about kuznetsov air-carrier and verify their validity in percentage from 0% to 100%.",
+    "print typical use cases in a md table with name, summary detail about use case.",
+    "print physical environmental data tools in a md table using these 2 cases: \n1. print physic effects affecting kuznetsov\n2. print physic effects applyed by kuznetsov.",
     "print detailed plan of all kuznetsov physical affects/altering of environment characteristics and their involvment in combat plan change of carrier.",
     "print detailed magnetic field changes of kuznetsov when on half of speed in a support ships formation."
   ],

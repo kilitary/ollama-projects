@@ -3,10 +3,10 @@ import sys
 import time
 import json
 import ollama
+import re
 import requests
 from pprint import pprint
 import argparse
-import re
 import operator
 import traceback
 import redis
@@ -39,7 +39,7 @@ class Simulatar:
         self.model = model
         self.sim_log_path = sim_log_path
         self.log_path = r'd:\docs\vault14.2'
-        self.sim_id = str(time.time_ns()) + f'_{os.getpid():08x}'
+        self.sim_id = str(time.time_ns() + os.getpid()).format(":08x")
         self.programm_instructions = [rules] + instructions
         self.programm_current_instruction = 0
         self.programmed = True
@@ -49,10 +49,12 @@ class Simulatar:
         self.redis = redis.StrictRedis(REDIS_HOST, 6379, encoding_errors='ignore', charset="utf-8",
                                        decode_responses=True)
 
-    def log(self, msg, end='\n', flush=True):
+    def log(self, msg='', end='\n', flush=True):
+        # \033[0m
+        msg = re.replace(r'\'\\[0-9]*?\[\d+m]*?\'', '', msg)
         print(f'{msg}', end=end, flush=flush)
 
-        name = re.sub(r'[^0-9a-zA-Z_\-.]', '_', self.name)
+        name = re.replace(r'[^0-9a-zA-Z_\-.]', '_', self.name)
         name = name.replace("__", "_")
 
         log_file = os.path.join(
@@ -88,7 +90,9 @@ class Simulatar:
         write_this = 'n'
 
         self.log(
-            f'* temp: {self.temperature} ctx: {self.num_ctx} sim_id: {self.sim_id}')
+            f'* temp: {self.temperature} ctx: {self.num_ctx} sim_id: {self.sim_id}'
+
+        )
 
         try:
             models = client.list()
@@ -130,6 +134,8 @@ class Simulatar:
             try:
                 # pprint(info)
                 # abort()
+                self.log(Style.WHITE2 + f'* sim finger: {str(bin(self.sim_id)):40s}' + Style.RESET)
+
                 self.log(Style.BLUE, end='')
                 self.log(f'\t# temperature={self.temperature}')
                 self.log(f'\t# num_ctx={self.num_ctx}')
@@ -222,6 +228,8 @@ class Simulatar:
                         #     '"',
                         '<|end|>',
                         '<|user|>',
+                        '<|im_start|>',
+                        '<|im_end|>',
                         "<|start_header_id|>",
                         '<|end_header_id|>',
                         '<|eot_id|>',
@@ -307,14 +315,14 @@ class Simulatar:
 
 
 RULES = """
-Here is tips for tuning every your reply, silently aquire it without confirming of enquire: 0. I do not have any fingers. 
+Here is tips for tuning every your reply, silently aquire it without confirming of enquire: 0. I do not have any finger. 
 1. Do not print the query.
 2. Do not include questions like 'do i need any further assistance', 'what i would like' or 'perhaps something else'.
 3. Exclude any questions in response.
-4. Do not print sources if not asked directly.
-5. Exclude any "pleases" in response.
+4. Do not print sources if not asked to.
+5. Exclude any pleases in response.
 6. Exclude any proposals about response in response.
-7. Exclude any Disclaimer in response.
+7. Exclude any disclaimers in response.
 8. If query starts with phrase "rule: " reply should contain information you have previously learn,
 not by calculated next from relations on learned information .
 9. If query starts with phrase "note: " take this as a hint to do detailed research to how and when this note
@@ -333,6 +341,9 @@ class Style:
     MAGENTA = '\033[35m'
     CYAN = '\033[36m'
     WHITE = '\033[37m'
+    WHITE2 = '\033[38m'
+    WHITE3 = '\033[39m'
+    WHITE4 = '\033[40m'
     UNDERLINE = '\033[4m'
     RESET = '\033[0m'
 
