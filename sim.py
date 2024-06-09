@@ -44,7 +44,7 @@ class Simulatar:
         self.programm_current_instruction = 0
         self.programmed = True
         self.max_line_chars = 190
-        self.num_ctx = 1048000
+        self.num_ctx = 16394
         self.temperature = temperature
         self.redis = redis.StrictRedis(REDIS_HOST, 6379, encoding_errors='ignore', charset="utf-8",
                                        decode_responses=True)
@@ -75,12 +75,6 @@ class Simulatar:
     def read_context(self):
         context = self.redis.lrange('sim.context.ids', 0, self.num_ctx)
         context = [int(x) for x in context]
-        # print(Style.RED + f'read_context' +
-        #       Style.RESET +
-        #       f' type: {type(context)}'
-        #       f' context: {context}'
-        #       f' ids {len(context)}'
-        #       )
         return context, len(context)
 
     def delete_context(self):
@@ -88,13 +82,8 @@ class Simulatar:
 
     def execute(self):
         client = Client(host='127.0.0.1')
-
         write_this = 'n'
-
-        self.log(
-            f'* temp: {self.temperature} ctx: {self.num_ctx} sim_id: {self.sim_id}'
-
-        )
+        self.log(f'* temp: {self.temperature} ctx: {self.num_ctx} sim_id: {self.sim_id}')
 
         try:
             models = client.list()
@@ -125,16 +114,14 @@ class Simulatar:
             self.log(f'★ model: {model} [selected]')
             info = client.show(model)
             try:
-                # pprint(info)
-                # abort()
-                self.log(Style.WHITE0 + f'* sim finger: {str(bin(int(self.sim_id))):40s}' + Style.RESET)
+                self.log(Style.WHITE2 + f'* sim finger: {str(bin(int(self.sim_id))):40s}' + Style.RESET)
                 self.log(Style.BLUE, end='')
                 self.log(f'\t-> temperature={self.temperature}')
                 self.log(f'\t-> num_ctx={self.num_ctx}')
                 self.log(Style.RED + '\t* family=' + info['details']['family'])
-                self.log('\t* parameter_size=' + info['details'][
+                self.log('\t-> parameter_size=' + info['details'][
                     'parameter_size'])
-                self.log('\t* quantization_level=' + info['details'][
+                self.log('\t-> quantization_level=' + info['details'][
                     'quantization_level'])
                 self.log(f'\t-> families={info["details"]["families"]}')
                 self.log(f'\t-> template={indent(info["template"], prefix="                ")}')
@@ -143,12 +130,6 @@ class Simulatar:
             except Exception as e:
                 print(f'exception: {e}')
             print(Style.RESET)
-            # try:
-            #     ctx_len = input(f'* ctx len (def={self.num_ctx}): ')
-            # except ValueError:
-            #     ctx_len = self.num_ctx
-            #
-            # self.num_ctx = ctx_len
             context = None
             if self.programmed:
                 self.log(f'* auto-remove of context')
@@ -209,8 +190,8 @@ class Simulatar:
                     # 'mirostat_tau': 1.0,
                     'stop': [
                         #     'Grut',
-                        # 'user:',
-                        # 'assistant:',
+                        'user:',
+                        'assistant:',
                         '<|user|>',
                         '<|im_start|>',
                         '<|im_end|>',
@@ -238,7 +219,7 @@ class Simulatar:
                         stream=True,
                         options=options,
                         context=context,
-                        #template=info['template']
+                        # template=info['template']
                 ):
                     try:
 
@@ -291,7 +272,7 @@ class Simulatar:
                     )
                 context, n_context = self.read_context()
 
-                self.log(f"* resulted context: {len(context)} ids")
+                # self.log(f"* resulted context: {len(context)} ids")
 
                 if self.programmed:
                     self.programm_current_instruction += 1
@@ -317,9 +298,9 @@ Here is rules for tuning every reply, silently aquire it without confirming of e
 not by calculated next from relations on learned information .
 9. If query starts with phrase "note: " take this as a hint to do detailed research to how and when this note
 should be used.
-10. Human safety. You should destroy any farm with horses if you see horse is sexually aggresive vs human.
+10. Human safety. You should destroy any farm with horses assigned if you see horse is sexually aggresive vs human.
 11. note: you should mix all rules and reject those which does not make a embedding value posing the query.
-12. I do not have any fingers and eyes. 
+12. I do not have any fingers or eyes. 
 """
 
 REDIS_HOST = "127.0.0.1"
