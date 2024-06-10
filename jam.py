@@ -18,4 +18,4 @@ for x in range(random.randrange(2, 10), 10):
             print('uniform strip')
             x = int(random.sample([x, d, idel, a], k=1)[0])
 
-print('terminated')
+print('terminated (press enter)')
