@@ -1,7 +1,9 @@
+# location: russia
+# date: 2020-03-01
 # so liar
 
 # date: later
-# secret: secret
+# secret: se c ret
 # for: quiery
 # type: help
 
