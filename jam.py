@@ -16,4 +16,4 @@ for x in range(random.randrange(2, 10), 10):
             print('uniform strip')
             x = int(random.uniform(2, 50))
 
-print('terminated')
+print('yo terminated')
