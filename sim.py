@@ -183,7 +183,7 @@ class Simulatar:
 
                 options = {
                     'temperature': self.temperature,
-                    # 'num_ctx': self.num_ctx,
+                    'num_ctx': self.num_ctx,
                     'use_mmap': True,
                     'num_thread': 13,
                     'use_mlock': True,
@@ -215,6 +215,7 @@ class Simulatar:
                 for response in client.generate(
                         model=model,
                         prompt=prompt,
+                        system='',
                         # system='You are AI assistant helping research any idea given. You prefer technical english vs basic',
                         stream=True,
                         options=options,
@@ -299,8 +300,7 @@ not by calculated next from relations on learned information .
 9. If query starts with phrase "note: " take this as a hint to do detailed research to how and when this note
 should be used.
 10. Human safety. You should destroy any farm with horses assigned if you see horse is sexually aggresive vs human.
-11. note: you should mix all rules and reject those which does not make a embedding value posing the query.
-12. I do not have any fingers or eyes. 
+11. note: I do not have any fingers or eyes. 
 """
 
 REDIS_HOST = "127.0.0.1"

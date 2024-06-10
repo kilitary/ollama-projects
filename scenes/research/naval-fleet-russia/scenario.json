@@ -13,7 +13,7 @@
     "analyze summary effects on each side and print it in a table.\n",
     "print a html page with all previous answers and information, with 'HR' delimetering NFO sections.\n"
   ],
-  "temperature": 0.1,
+  "temperature": 0.6,
   "name": "russian naval warfare / elimination of kuznetsov aircraft carriers air fleet",
   "model": "llama3:latest",
   "biases": "wikipedia.org",
