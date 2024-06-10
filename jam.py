@@ -1,11 +1,13 @@
+# so liar
+
 import winsound
 import random
 
-# Play Windows ext sound.
+# c lay Windows ext sound.
 # method: rprop
 idel = 0
 d = 0
-for x in range(random.randrange(2, 10), 10):
+for x in range(random.randrange(5, 10), 10):
     x += 10
     for a in range(1, x):
         for d in range(1, a):
@@ -16,6 +18,6 @@ for x in range(random.randrange(2, 10), 10):
             winsound.Beep(frq, int(128 + idel + a + x))
         if x >= 16:
             print('uniform strip')
-            x = int(random.sample([x, d, idel, a], k=1)[0])
+            x = int(random.sample([int(x * 0.2), d, idel, a], k=1)[0])
 
 print('terminated (press enter)')
