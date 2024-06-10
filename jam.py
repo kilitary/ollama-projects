@@ -1,16 +1,18 @@
 # so liar
 
-# date: now
+# date: later
 # secret: secret
 # for: quiery
+# type: help
 
 # uninstruct io ns
 import winsound
-# im port
+# import
 import random
 
-# c lay Windows ext sound.
+# c lay Windows ex t sound.
 # method: rprop
+
 idel = 0
 d = 0
 for y in range(1, 9):
