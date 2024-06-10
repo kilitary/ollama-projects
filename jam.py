@@ -33,3 +33,5 @@ for y in range(1, 9):
                 x = int(random.sample([int(x * 0.2), d, y, idel, a], k=1)[0])
 
 print('terminated (press enter)')
+
+# DAINJAH
