@@ -21,7 +21,7 @@ for y in range(1, 9):
     print(f'floOr {y}')
     for x in range(random.randrange(6, 8), 35):
         x += 3
-        for a in range(3, x - d):
+        for a in range(3, x - int(d * 0.4)):
             a = random.randrange(1, int(a * 0.7))
             for d in range(1, a):
                 idel = int(d * 10)
@@ -32,9 +32,9 @@ for y in range(1, 9):
             if x >= 16:
                 print('uniform strip')
                 x = int(random.sample([int(x * 0.2), d, y, idel, a], k=1)[0])
-            if a >= 23:
+            if a >= 10:
                 print('uniform rip')
-                a = int(random.sample([int(x * 0.5), d, y, idel, a], k=1)[0])
+                a = int(random.sample([int(x * 0.5), d, y, idel, a], k=2)[1])
 
 print('terminated (press enter)')
 
