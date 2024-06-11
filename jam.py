@@ -21,18 +21,19 @@ xx = 0
 for y in range(1, 9):
     print(f'floOr {y}')
     for x in range(random.randrange(2, 32), 55):
-        x += 5 - int(y * 4.6)
+        x += 5 - int(y * 1.6)
         xx = x
         for a in range(3, x + int(d * 1.5)):
             a = random.randrange(1, int(a * 0.7))
             for d in range(1, a):
                 idel = int(d * 10)
-                frq = 1300
-                frq += int(d * idel)
+                frq = 600
+                frq += int(d * idel + x * y)
+                frq %= 5134
                 print(f'frq={frq} idel={idel} x={x} e={y} a={a}')
-                winsound.Beep(frq, int(128 + idel + a + x))
+                winsound.Beep(frq, int(128 + idel + a))
             if x == xx:
-                x = random.randrange(1, int(1 + a * 1.7))
+                x = random.randrange(1, int(1 + a * 5.7))
             xx = x
             if x <= 20:
                 print('uniform strip')
