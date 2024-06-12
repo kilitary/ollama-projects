@@ -13,18 +13,20 @@ import winsound
 import random
 
 # c lay Windows ex t sound.
-# method: rprop
+# method: rpropd
 
 import concurrent.futures
 import threading
 import time
+import math
+
 
 def th(ii=0):
     idel = 0
     d = 0
     xx = 0
     sp = 0
-    th_id = threading.get_ident()
+    th_id = threading.get_native_id()
     for y in range(1, 9):
         print(f'floOr {y}')
         for x in range(random.randrange(2, 32), 55):
@@ -39,9 +41,12 @@ def th(ii=0):
                     frq += int(d * idel + x * y)
                     frq %= 5134
 
-                    sp = random.randrange(1, 5) * 0.1
-                    print(f'[{th_id:08x}] sp={sp} frq={frq} idel={idel} x={x} e={y} a={a}')
-                    winsound.Beep(frq, int(128 + idel + a))
+                    sp = random.randrange(1, 5) * 0.01
+
+                    rnl = random.randrange(min(x, a) + 1, max(d, xx) + 100)
+                    ln = (int(70 + idel + a + x +d) + rnl) % 1800
+                    print(f'[{th_id:08x}] sp={sp} frq={frq} idel={idel} x={x} e={y} a={a} rnl={rnl} ln={ln}')
+                    winsound.Beep(frq, ln)
                 if x == xx:
                     x = random.randrange(1, int(1 + a * 5.7))
                 xx = x
@@ -55,18 +60,7 @@ def th(ii=0):
     return 0
 
 
-rn = 2
-# We can use a with statement to ensure threads are cleaned up promptly
-with concurrent.futures.ThreadPoolExecutor(max_workers=rn) as executor:
-    # Start the load operations and mark each future with its URL
-    ft = [executor.submit(th, ii) for ii in range(rn)]
-
-    for future in concurrent.futures.as_completed(ft):
-        d = future.result()
-        try:
-            print(f'ret: {ret}')
-        except Exception as exc:
-            print('%r generated an exception: %s' % (url, exc))
+th(0)
 
 print('terminated (press enter)')
 
