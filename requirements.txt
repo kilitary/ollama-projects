@@ -127,3 +127,5 @@ widgetsnbextension==4.0.10
 yarl==1.9.4
 
 redis~=5.0.5
+comtypes>=1.4.4
+pycaw>=20240210

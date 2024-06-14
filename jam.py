@@ -15,20 +15,25 @@ import random
 import time
 import math
 import threading
-
-# c lay Windows ex t sound.
-# method: rpropd
-
-
+# import "audo control"
 from ctypes import cast, POINTER
 from comtypes import CLSCTX_ALL
 from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
 
+# volume control: get speakers
 devices = AudioUtilities.GetSpeakers()
 interface = devices.Activate(
     IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
 volume = cast(interface, POINTER(IAudioEndpointVolume))
 
+
+# cc: c lay Windows ex t sound.
+# method: rprop
+
+# change-s: (in future)
+# + seed scan for a lay sound
+# + simulated annealing
+# + generalized
 
 # 2nd rail - volume (implementation: speed)
 
