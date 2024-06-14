@@ -35,7 +35,7 @@ volume = cast(interface, POINTER(IAudioEndpointVolume))
 # + simulated annealing
 # + generalized
 
-# 2nd rail - volume (implementation: speed)
+# 1nd rail - volume (implementation: speed)
 
 def rail_1(a=0):
     # sp = random.randrange(1, 12) * 0.01
@@ -51,7 +51,7 @@ def rail_1(a=0):
     volume.SetMasterVolumeLevel(vl, None)  # 10%
 
 
-# 1ct rail: program
+# 2ct rail: decoy simulation program
 
 def rail_2(d=0, x=0, y=0, a=0, xx=0):
     idel = int(d * 10)
