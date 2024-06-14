@@ -18,7 +18,6 @@ import threading
 # c lay Windows ex t sound.
 # method: rpropd
 
-# 2nd rail - volume (implementation: speed)
 
 from ctypes import cast, POINTER
 from comtypes import CLSCTX_ALL
@@ -30,10 +29,10 @@ interface = devices.Activate(
 volume = cast(interface, POINTER(IAudioEndpointVolume))
 
 
-# 1 rail: program
+# 2nd rail - volume (implementation: speed)
 
 def rail_1(a=0):
-    sp = random.randrange(1, 12) * 0.01
+    # sp = random.randrange(1, 12) * 0.01
     # time.sleep(sp)
     vl = -20.0
     vl += int(a * 20.11)
@@ -46,6 +45,8 @@ def rail_1(a=0):
     volume.SetMasterVolumeLevel(vl, None)  # 10%
 
 
+# 1ct rail: program
+
 def rail_2(d=0, x=0, y=0, a=0, xx=0):
     idel = int(d * 10)
     frq_i = 600
@@ -54,10 +55,14 @@ def rail_2(d=0, x=0, y=0, a=0, xx=0):
     frq_i = max(37, frq_i)
 
     rnl = random.randrange(min(x, a) + 1, max(d, xx) + 100)
-    ln_i = min(260, 80 + ((int(70 + idel + a + x + d) + rnl))) % 300
+    ln_i = min(260, 80 + (int(70 + idel + a + x + d) + rnl)) % 300
 
     return frq_i, ln_i
 
+
+# rail #.... (upto: 4)
+
+# rail runner
 
 def rails_run(ii=0):
     idel = 0
@@ -90,16 +95,19 @@ def rails_run(ii=0):
                 prev_ln = 0
                 frq = 0
                 ln = 0
+
                 for d in range(1, a % 10):
 
                     frq, ln = rail_2(d)
                     if prev_ln > ln:
                         rail_1(a)
+                        print(f'\nret->{frq} ')
                     prev_ln = ln
 
-                    print(f'step #{d}')
+                    print(f'.', end='')
                     winsound.Beep(frq, ln)
 
+                print(f'\n\r')
                 print(f'[{th_id:08x}-xy] d={d} sp={sp} frq={frq} idel={idel} x={x} e={y} a={a} ln={ln}')
 
                 rail_1(a=a)
@@ -110,8 +118,11 @@ def rails_run(ii=0):
 
 th_id = threading.get_native_id()
 sp = 0
+
+print(f'[{th_id:08x}---] running de-at-h rails')
+
 rails_run(0)
 
-print('terminated (press enter)')
+print(f'[{th_id:08x}---] terminated (press enter)')
 
 # DAINJAH
