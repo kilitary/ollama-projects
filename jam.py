@@ -40,14 +40,17 @@ volume = cast(interface, POINTER(IAudioEndpointVolume))
 def rail_1(a=0):
     # sp = random.randrange(1, 12) * 0.01
     # time.sleep(sp)
-    vl = -20.0
-    vl += int(a * 20.11)
-    vl = random.randrange(1, 2 + abs(int(vl)))
-    vl = -vl * 0.1
+    vl = 0
+    vlx = -1.0
+    vlx += int(a * 30.11)
+    vlx = random.randrange(1, 2 + abs(int(vlx)))
+    vlx = -(abs((-vlx * random.randrange(1, 2))) % 30.0)
     # vl = min(-30, min(10, int(vl)))
-    if vl <= -30.0:
-        vl = random.sample([-30.0, -20.0, -10.0], k=3)[0]
-    print(f'\n[{th_id:08x}-02] uniform trip vl: {vl:2.1f}  a: {a:-2d} sp: {sp:2.1f}')
+    if vlx <= -30.0 or vl >= 30.0:
+        vl = random.sample([-30.0, -25.0, -20.0, -15.0, -10.0], k=5)[0]
+    else:
+        vl = vlx
+    print(f'\n[{th_id:08x}-02] uniform trip vl: {vl:2.1f}  a: {a:-2d} sp: {sp:2.1f} vlx: {vlx:2.1f}')
     volume.SetMasterVolumeLevel(vl, None)  # 10%
 
 
