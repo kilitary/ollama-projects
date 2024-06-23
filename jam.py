@@ -41,10 +41,10 @@ def rail_1(a=0):
     # sp = random.randrange(1, 12) * 0.01
     # time.sleep(sp)
     vl = 0
-    vlx = -1.0
+    vlx = -10.0
     vlx += int(a * 30.11)
     vlx = random.randrange(1, 2 + abs(int(vlx)))
-    vlx = -(abs((-vlx * random.randrange(1, 2))) % 30.0)
+    vlx = -(abs((-vlx * random.randrange(1, 2))) % 17.0)
     # vl = min(-30, min(10, int(vl)))
     if vlx <= -30.0 or vl >= 30.0:
         vl = random.sample([-30.0, -25.0, -20.0, -15.0, -10.0], k=5)[0]
@@ -75,7 +75,7 @@ def rail_2(d=0, x=0, y=0, a=0, xx=0):
 
 def rails_run(ai=0):
     idel = 0
-    d = random.sample([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], k=1)[0]
+    d = random.sample([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], k=10)[0]
     for y in range(1, 9):
         print(f'floOr {y}')
 
