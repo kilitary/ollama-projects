@@ -42,7 +42,7 @@ def rail_1(a=0):
     # time.sleep(sp)
     vl = 0
     vlx = -10.0
-    vlx += int(a * 30.11)
+    vlx += int(a * 20.11)
     vlx = random.randrange(1, 2 + abs(int(vlx)))
     vlx = -(abs((-vlx * random.randrange(1, 2))) % 25.0)
     # vl = min(-30, min(10, int(vl)))
@@ -57,11 +57,20 @@ def rail_1(a=0):
 # 2ct rail: decoy simulation program
 
 def rail_2(d=0, x=0, y=0, a=0, xx=0):
-    idel = int(d * 10)
-    frq_i = 600
-    frq_i += int(d * idel + x * y)
-    frq_i %= 5134
-    frq_i = max(37, frq_i)
+
+    line = random.randrange(0, 3)
+    if line < 1:
+        idel = 2 + int(d / 10)
+        frq_i = 600
+        frq_i += int(d / idel + x / y)
+        frq_i %= 5134
+        frq_i = max(37, frq_i)
+    else:
+        idel = int(d * 10)
+        frq_i = 600
+        frq_i += int(d * idel + x * y)
+        frq_i %= 5134
+        frq_i = max(37, frq_i)
 
     rnl = random.randrange(min(x, a) + 1, min(x, a) + 1 + (max(d, xx) + 100))
     ln_i = min(260, 80 + (int(70 + idel + a + x + d) + rnl)) % 300
@@ -109,7 +118,7 @@ def rails_run(ai=0):
 
                 for d in range(1, a % 15):
 
-                    frq, ln = rail_2(d)
+                    frq, ln = rail_2(a=a, x=x, y=y, d=d, xx=xx)
                     if prev_ln > ln:
                         rail_1(a)
                         print(f'>', end='')

@@ -181,6 +181,7 @@ class Simulatar:
                             f'* {step_engine}: ' +
                             Style.CYAN + f'{prompt}' + Style.RESET
                         )
+                        rich.print()
 
                 else:
                     prompt = input("< enter the prompt: ")
