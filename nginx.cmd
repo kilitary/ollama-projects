@@ -1,0 +1,1 @@
+docker run -it --rm -d -p 80:80 --name web-nginx-http -v Z:\iso\System_Backup:/usr/share/nginx/html nginx

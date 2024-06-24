@@ -90,6 +90,7 @@ class Simulatar:
             selected_model_idx = 0
             input_text = '* select model: '
             sm = []
+
             for m in models['models']:
                 name = m["name"]
                 sm.append(name)
@@ -102,6 +103,7 @@ class Simulatar:
                          + Style.RESET
                          )
                 selected_model_idx += 1
+
             if self.model is None:
                 selected_model_idx = int(input(input_text))
                 model = sm[selected_model_idx]
@@ -111,6 +113,7 @@ class Simulatar:
                     model = sm[selected_model_idx]
                 except ValueError:
                     model = self.model
+
             self.log(f'★ model: {model} [selected]')
             info = client.show(model)
             try:
@@ -129,11 +132,15 @@ class Simulatar:
                 self.log(f'\t-> system={indent(info["system"], prefix="                ")}')
             except Exception as e:
                 print(f'exception: {e}')
+
             print(Style.RESET)
+
             context = None
+
             if self.programmed:
                 self.log(f'* auto-remove of context')
             self.redis.delete('sim.context.ids')
+
             while True:
                 current_chars = 0
                 if write_this != 'y':
@@ -159,7 +166,6 @@ class Simulatar:
                         self.programmed = False
                         self.log('■ end if program')
                         prompt = input("< enter the prompt: ")
-                        # return
                     else:
                         step_engine = 'setup' if (
                                 self.programm_current_instruction == 0
@@ -211,7 +217,9 @@ class Simulatar:
 
                 # penalize_newline
                 prev_nl = False
+                num_context = 0
                 response = None
+                scontext = ''
                 for response in client.generate(
                         model=model,
                         prompt=prompt,
@@ -258,6 +266,7 @@ class Simulatar:
                 if self.programmed is False and len(scontext):
                     write_this = input(
                         f"\nadd to memory {len(scontext)} ids? Y/n ")
+
                     if write_this == 'y' and 'context' in response and len(
                             scontext) > 0:
 
@@ -271,6 +280,7 @@ class Simulatar:
                     self.log(
                         f"\n\n< context {num_context} ids auto-added"
                     )
+
                 context, n_context = self.read_context()
 
                 # self.log(f"* resulted context: {len(context)} ids")
@@ -329,7 +339,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.scene is None:
-        parser.error('scene dir is required')
+        parser.error('scenedir is required')
 
     print(f'< scene: {args.scene}')
     scenario_file = os.path.join('scenes', args.scene, 'scenario.json')
@@ -348,10 +358,8 @@ if __name__ == '__main__':
     program_instruction = program_data['instructions']
     program_int_biases = program_data['biases']
     program_sim_log_path = program_data['sim_log_path']
-    program_rules = program_rules.replace(
-        '%source_biases%',
-        program_int_biases
-    )
+    program_rules = program_rules.replace('%source_biases%', program_int_biases
+                                          )
     program_temperature = program_data['temperature']
     program_model = program_data['model']
     program_model_template = program_data['template']

@@ -44,7 +44,7 @@ def rail_1(a=0):
     vlx = -10.0
     vlx += int(a * 30.11)
     vlx = random.randrange(1, 2 + abs(int(vlx)))
-    vlx = -(abs((-vlx * random.randrange(1, 2))) % 17.0)
+    vlx = -(abs((-vlx * random.randrange(1, 2))) % 25.0)
     # vl = min(-30, min(10, int(vl)))
     if vlx <= -30.0 or vl >= 30.0:
         vl = random.sample([-30.0, -25.0, -20.0, -15.0, -10.0], k=5)[0]
