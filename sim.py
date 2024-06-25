@@ -34,6 +34,7 @@ class Simulatar:
             model=None,
             template=None
     ):
+        # section model init
         self.name = name
         self.template = template or ""
         self.model = model
@@ -141,6 +142,7 @@ class Simulatar:
                 self.log(f'* auto-remove of context')
             self.redis.delete('sim.context.ids')
 
+            # section process instruct
             while True:
                 current_chars = 0
                 if write_this != 'y':
@@ -181,8 +183,6 @@ class Simulatar:
                             f'* {step_engine}: ' +
                             Style.CYAN + f'{prompt}' + Style.RESET
                         )
-                        rich.print()
-
                 else:
                     prompt = input("< enter the prompt: ")
 

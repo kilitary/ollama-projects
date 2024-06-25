@@ -15,6 +15,8 @@ import random
 import time
 import math
 import threading
+from rich import print as rprint
+from rich.console import Console
 # import "audo control"
 from ctypes import cast, POINTER
 from comtypes import CLSCTX_ALL
@@ -26,7 +28,6 @@ interface = devices.Activate(
     IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
 volume = cast(interface, POINTER(IAudioEndpointVolume))
 
-
 # cc: c lay Windows ex t sound.
 # method: rprop
 
@@ -35,8 +36,14 @@ volume = cast(interface, POINTER(IAudioEndpointVolume))
 # + simulated annealing
 # + generalized
 
+# section global
+console = Console(width=122)
+max_vol = 0
+min_vol = -30
+style = "bold red on white"
 # 1nd rail - volume (implementation: speed)
 
+# section volume
 def rail_1(a=0):
     # sp = random.randrange(1, 12) * 0.01
     # time.sleep(sp)
@@ -46,16 +53,22 @@ def rail_1(a=0):
     vlx = random.randrange(1, 2 + abs(int(vlx)))
     vlx = -(abs((-vlx * random.randrange(1, 2))) % 25.0)
     # vl = min(-30, min(10, int(vl)))
-    if vlx <= -30.0 or vl >= 30.0:
-        vl = random.sample([-30.0, -25.0, -20.0, -15.0, -10.0], k=5)[0]
+    if vlx <= min_vol or vl >= max_vol:
+        vl = random.randrange(min_vol, max_vol)
     else:
         vl = vlx
-    print(f'\n[{th_id:08x}-02] uniform trip vl: {vl:2.1f}  a: {a:-2d} sp: {sp:2.1f} vlx: {vlx:2.1f}')
-    volume.SetMasterVolumeLevel(vl, None)  # 10%
+    #print(f'\n[{th_id:08x}-02] uniform trip vl: {vl:2.1f}  a: {a:-2d} sp: {sp:2.1f} vlx: {vlx:2.1f}')
+
+    try:
+        volume.SetMasterVolumeLevel(vl, None)  # 10%
+    except Exception as e:
+        console.print(f'[red]exception in volume: {e}', style=style)
+
 
 
 # 2ct rail: decoy simulation program
 
+# section decoy
 def rail_2(d=0, x=0, y=0, a=0, xx=0):
 
     line = random.randrange(0, 3)
@@ -81,7 +94,7 @@ def rail_2(d=0, x=0, y=0, a=0, xx=0):
 # rail #.... (upto: 4)
 
 # rail runner
-
+# section rails
 def rails_run(ai=0):
     idel = 0
     d = random.sample([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], k=10)[0]
@@ -104,11 +117,11 @@ def rails_run(ai=0):
                 if x <= 20:
                     px = x
                     x = int(random.sample([int(x), d, y, idel, a], k=1)[0])
-                    print(f'[{th_id:08x}-00] uniform strip {px} => {x}')
+                    #print(f'[{th_id:08x}-00] uniform strip {px} => {x}')
                 if a >= 10:
                     pa = a
                     a = int(random.sample([int(x * 0.5), d, y, idel, a], k=2)[1])
-                    print(f'[{th_id:08x}-00] uniform rip {pa} => {a}')
+                    #print(f'[{th_id:08x}-00] uniform rip {pa} => {a}')
 
                 prev_ln = 0
                 frq = 0
@@ -129,10 +142,11 @@ def rails_run(ai=0):
 
                     prev_ln = ln
 
+
                     winsound.Beep(frq, ln)
 
                 print(f'\n\r')
-                print(f'[{th_id:08x}-xy] d={d} sp={sp} frq={frq} idel={idel} x={x} e={y} a={a} ln={ln}')
+                #print(f'[{th_id:08x}-xy] d={d} sp={sp} frq={frq} idel={idel} x={x} e={y} a={a} ln={ln}')
 
                 rail_2(a=a, x=x, y=y, d=d, xx=xx)
 

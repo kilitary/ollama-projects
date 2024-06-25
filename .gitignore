@@ -400,3 +400,25 @@ cython_debug/
 /.idea/codeStyles/codeStyleConfig.xml
 /venv2/
 /desktop.ini
+/nginx/letsencrypt/accounts/acme-v02.api.letsencrypt.org/directory/46f96fcdbf2f7674910e09ae0eb82baf/meta.json
+/nginx/letsencrypt/accounts/acme-v02.api.letsencrypt.org/directory/46f96fcdbf2f7674910e09ae0eb82baf/private_key.json
+/nginx/letsencrypt/accounts/acme-v02.api.letsencrypt.org/directory/46f96fcdbf2f7674910e09ae0eb82baf/regr.json
+/nginx/letsencrypt/archive/entry.kilitary.ru/cert1.pem
+/nginx/letsencrypt/archive/entry.kilitary.ru/chain1.pem
+/nginx/letsencrypt/archive/entry.kilitary.ru/fullchain1.pem
+/nginx/letsencrypt/archive/entry.kilitary.ru/privkey1.pem
+/nginx/letsencrypt/live/entry.kilitary.ru/cert.pem
+/nginx/letsencrypt/live/entry.kilitary.ru/chain.pem
+/nginx/letsencrypt/live/entry.kilitary.ru/fullchain.pem
+/nginx/letsencrypt/live/entry.kilitary.ru/privkey.pem
+/nginx/letsencrypt/live/entry.kilitary.ru/README
+/nginx/letsencrypt/live/README
+/nginx/letsencrypt/renewal/entry.kilitary.ru.conf
+/nginx/letsencrypt/site/files/strelec/Disk Backup.adi
+/nginx/letsencrypt/site/files/System Backup(29)/System Backup(29).adi
+/nginx/letsencrypt/site/files/System Backup(29)/System Backup(29)1.adi
+/nginx/letsencrypt/site/files/System_Backup/System_Backup_aomei_backupper.adi
+/nginx/letsencrypt/site/files/desktop.ini
+/nginx/log/letsencrypt.log.1
+/nginx/log/letsencrypt.log.2
+/nginx/run.sh
