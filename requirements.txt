@@ -129,3 +129,4 @@ yarl==1.9.4
 redis~=5.0.5
 comtypes>=1.4.4
 pycaw>=20240210
+rich>=13.7.1

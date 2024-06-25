@@ -37,40 +37,41 @@ volume = cast(interface, POINTER(IAudioEndpointVolume))
 # + generalized
 
 # section global
-console = Console(width=122)
-max_vol = 0
+console = Console(width=122, style="white on black")
+
+max_vol = 25
 min_vol = -30
-style = "bold red on white"
+max_string_len = 18
+
+
 # 1nd rail - volume (implementation: speed)
 
 # section volume
-def rail_1(a=0):
+def rail_vol(a=0):
     # sp = random.randrange(1, 12) * 0.01
     # time.sleep(sp)
     vl = 0
     vlx = -10.0
     vlx += int(a * 20.11)
     vlx = random.randrange(1, 2 + abs(int(vlx)))
-    vlx = -(abs((-vlx * random.randrange(1, 2))) % 25.0)
+    vlx = -(abs((-vlx * random.randrange(1, 3))) % max_vol)
     # vl = min(-30, min(10, int(vl)))
     if vlx <= min_vol or vl >= max_vol:
         vl = random.randrange(min_vol, max_vol)
     else:
         vl = vlx
-    #print(f'\n[{th_id:08x}-02] uniform trip vl: {vl:2.1f}  a: {a:-2d} sp: {sp:2.1f} vlx: {vlx:2.1f}')
+    # print(f'\n[{th_id:08x}-02] uniform trip vl: {vl:2.1f}  a: {a:-2d} sp: {sp:2.1f} vlx: {vlx:2.1f}')
 
     try:
         volume.SetMasterVolumeLevel(vl, None)  # 10%
     except Exception as e:
-        console.print(f'[red]exception in volume: {e}', style=style)
-
+        console.print(f'exception in volume: {e}', style="red on white")
 
 
 # 2ct rail: decoy simulation program
 
 # section decoy
-def rail_2(d=0, x=0, y=0, a=0, xx=0):
-
+def rail_freq_len(d=0, x=0, y=0, a=0, xx=0):
     line = random.randrange(0, 3)
     if line < 1:
         idel = 2 + int(d / 10)
@@ -99,7 +100,7 @@ def rails_run(ai=0):
     idel = 0
     d = random.sample([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], k=10)[0]
     for y in range(1, 9):
-        print(f'floOr {y}')
+        console.print(f'floOr {y}')
 
         for x in range(random.randrange(2, 32), 55):
 
@@ -117,38 +118,31 @@ def rails_run(ai=0):
                 if x <= 20:
                     px = x
                     x = int(random.sample([int(x), d, y, idel, a], k=1)[0])
-                    #print(f'[{th_id:08x}-00] uniform strip {px} => {x}')
+                    # console.print(f'[{th_id:08x}-00] uniform strip {px} => {x}')
                 if a >= 10:
                     pa = a
                     a = int(random.sample([int(x * 0.5), d, y, idel, a], k=2)[1])
-                    #print(f'[{th_id:08x}-00] uniform rip {pa} => {a}')
+                    # console.print(f'[{th_id:08x}-00] uniform rip {pa} => {a}')
 
                 prev_ln = 0
                 frq = 0
                 ln = 0
 
-                print(f'\nret->{idel:04} ')
+                console.print(f'\nret->{idel:04} ')
 
-                for d in range(1, a % 15):
+                for d in range(1, a % max_string_len):
 
-                    frq, ln = rail_2(a=a, x=x, y=y, d=d, xx=xx)
-                    if prev_ln > ln:
-                        rail_1(a)
-                        print(f'>', end='')
-                    elif prev_ln < ln:
-                        print(f'<', end='')
-                    else:
-                        print(f'+', end='')
+                    frq, ln = rail_freq_len(a=a, x=x, y=y, d=d, xx=xx)
+
+                    console.print(f'{frq:04d}:{ln:02d} ', end='')
 
                     prev_ln = ln
 
-
                     winsound.Beep(frq, ln)
 
-                print(f'\n\r')
-                #print(f'[{th_id:08x}-xy] d={d} sp={sp} frq={frq} idel={idel} x={x} e={y} a={a} ln={ln}')
+                # console.print(f'[{th_id:08x}-xy] d={d} sp={sp} frq={frq} idel={idel} x={x} e={y} a={a} ln={ln}')
 
-                rail_2(a=a, x=x, y=y, d=d, xx=xx)
+                rail_freq_len(a=a, x=x, y=y, d=d, xx=xx)
 
     return 0
 
@@ -156,10 +150,10 @@ def rails_run(ai=0):
 th_id = threading.get_native_id()
 sp = 0
 
-print(f'[{th_id:08x}---] running de-at-h rails')
+console.print(f'[{th_id:08x}---] running de-at-h rails')
 
 rails_run(0)
 
-print(f'[{th_id:08x}---] terminated (press enter)')
+console.print(f'[{th_id:08x}---] terminated (press enter)')
 
 # DAINJAH

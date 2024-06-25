@@ -1,0 +1,15 @@
+services:
+  web:
+    image: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - /mnt/z/iso:/usr/share/nginx/html
+      - ./live/entry.kilitary.ru/fullchain.pem:/etc/fullchain.pem
+      - ./live/entry.kilitary.ru/privkey.pem:/etc/privkey.pem
+    networks:
+      - docker-network
+networks:
+  docker-network:
