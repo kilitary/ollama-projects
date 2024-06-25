@@ -41,7 +41,7 @@ console = Console(width=122)
 
 max_vol = 30.0
 min_vol = -35
-max_string_len = 11
+max_string_len = 15
 max_len = 455
 min_len = 200
 

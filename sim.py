@@ -21,8 +21,6 @@ def abort(str=""):
 
 
 class Simulatar:
-    time_created = time.time_ns()
-
     def __init__(
             self,
             name: str,
@@ -35,12 +33,13 @@ class Simulatar:
             template=None
     ):
         # section model init
+        self.time_created = time.time_ns()
         self.name = name
         self.template = template or ""
         self.model = model
         self.sim_log_path = sim_log_path
         self.log_path = r'd:\docs\vault14.2'
-        self.sim_id = str(time.time_ns() + os.getpid()).format(":08x")
+        self.sim_id = str(self.time_created + os.getpid()).format(":08x")
         self.programm_instructions = [rules] + instructions
         self.programm_current_instruction = 0
         self.programmed = True
@@ -244,8 +243,7 @@ class Simulatar:
                             self.log(resp, end='', flush=True)
                         elif current_chars >= self.max_line_chars:
                             current_chars = 0
-                            self.log(str.strip(resp),
-                                     flush=True)
+                            self.log(str.strip(resp), flush=True)
                         else:
                             resp = resp.replace('\'', '')
                             if len(resp):
