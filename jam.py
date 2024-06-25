@@ -42,8 +42,8 @@ console = Console(width=122)
 max_vol = 30.0
 min_vol = -35
 max_string_len = 15
-max_len = 455
-min_len = 200
+max_len = 500
+min_len = 170
 
 # 1nd rail - volume (implementation: speed)
 volume.SetMasterVolumeLevel(min_vol, None)
@@ -54,7 +54,7 @@ def rail_vol(a=0):
     # sp = random.randrange(1, 12) * 0.01
     # time.sleep(sp)
     vl = 0
-    vlx = -10.0
+    vlx = -1.0
     vlx += int(a * 20.11)
     vlx = random.randrange(1, 2 + abs(int(vlx)))
     vlx = -(abs((-vlx * random.randrange(1, 3))) % max_vol)
@@ -90,7 +90,7 @@ def rail_freq_len(d=0, x=0, y=0, a=0, xx=0):
         frq_i = max(37, frq_i)
 
     rnl = random.randrange(min(x, a) + 1, min(x, a) + 1 + (max(d, xx) + 100))
-    ln_i = max(min_len, 80 + (int(70 + idel + a + x + d) + rnl)) % max_len
+    ln_i = random.randrange(min_len, max(1 + abs(int(idel + a - x + d + rnl) % max_len), max_len))
 
     return frq_i, ln_i
 
