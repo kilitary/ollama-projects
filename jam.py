@@ -42,7 +42,7 @@ console = Console(width=122)
 max_vol = 30.0
 min_vol = -35
 max_string_len = 15
-max_len = 500
+max_len = 400
 min_len = 170
 
 # 1nd rail - volume (implementation: speed)
@@ -106,9 +106,12 @@ def rails_run(ai=0):
         console.print(f'floOr {y}')
         xx = 0
         for x in range(random.randrange(2, 32), 55):
-            x += 5 - int(y * 1.6)
+            console.print(f'[cyan]{x:03d}')
+            x += 5 + int(y * 1.6)
 
-            for a in range(3, x + int(d * 1.5)):
+            for a in range(3, 3 + x + int(d * 1.5)):
+                console.print(f'[red]\n{a:03d}')
+
                 idel = random.sample([y, x, a, 111, 999, 222, 444, 777, 666], k=9)[0]
                 a = random.randrange(1, int(a * 1.7))
 
@@ -129,20 +132,18 @@ def rails_run(ai=0):
                 frq = 0
                 ln = 0
 
-                console.print(f'\nret->{idel:03} ')
-
                 for d in range(1, a % max_string_len):
                     frq, ln = rail_freq_len(a=a, x=x, y=y, d=d, xx=xx)
 
                     r = random.randrange(1, 3)
 
                     if r == 2:
-                        st = 'green on yellow'
+                        st = '[green on yellow]'
                         rail_vol(a=a)
                     else:
-                        st = 'cyan on white'
+                        st = '[blue]'
 
-                    console.print(f'{frq:04d}:{ln:03d}', end='', style=st)
+                    console.print(f'{st}{frq:04d}:{ln:03d}', end='')
                     console.print(' ', end='')
 
                     prev_ln = ln
