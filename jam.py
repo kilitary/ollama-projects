@@ -101,7 +101,7 @@ def rail_freq_len(d=0, x=0, y=0, a=0, xx=0):
 # section rails
 def rails_run(ai=0):
     idel = 0
-    d = random.sample([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], k=10)[0]
+    d = random.sample([0, 11, 222, 33, 444, 55, 66, 777, 888, 99], k=10)[0]
     for y in range(1, 9):
         console.print(f'floOr {y}')
         xx = 0
@@ -137,10 +137,10 @@ def rails_run(ai=0):
                     r = random.randrange(1, 3)
 
                     if r == 2:
-                        st = 'cyan on white'
+                        st = 'green on yellow'
                         rail_vol(a=a)
                     else:
-                        st = 'green'
+                        st = 'cyan on white'
 
                     console.print(f'{frq:04d}:{ln:03d}', end='', style=st)
                     console.print(' ', end='')
