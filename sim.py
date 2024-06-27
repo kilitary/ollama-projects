@@ -12,11 +12,13 @@ import traceback
 import redis
 from ollama import Client
 from textwrap import indent
+from rich import console
+from rich import print, print_json
 
 
-def abort(str=""):
+def abort(txt=""):
     """ just abort the program """
-    pprint(str)
+    pprint(txt)
     sys.exit(-1)
 
 
@@ -35,6 +37,12 @@ class Simulatar:
         # section model init
         self.time_created = time.time_ns()
         self.name = name
+        self.console = console.Console(
+            force_terminal=False,
+            no_color=False,
+            force_interactive=True,
+            color_system='windows'
+        )
         self.template = template or ""
         self.model = model
         self.sim_log_path = sim_log_path
@@ -51,10 +59,11 @@ class Simulatar:
 
         re.purge()
 
-    def log(self, msg='', end='\n', flush=True):
+    def log(self, msg='', end='\n', flush=True, justify=None):
         # \033[0m
-        msgs = re.sub(r'\x1b(?:\\[0-9]*|)\[\d+(?:m|)]*?', '', msg)
-        print(f'{msg}', end=end, flush=flush)
+        # msgs = re.sub(r'\x1b(?:\\[0-9]*|)\[\d+(?:m|)]*?', '', msg)
+        msgs = re.sub(r'\[(?:|/).*?]', '', msg)
+        self.console.print(f'{msg}', end=end, justify=justify)
 
         name = re.sub(r'[^0-9a-zA-Z_\-.]', '_', self.name)
         name = name.replace("__", "_")
@@ -97,10 +106,10 @@ class Simulatar:
                 size_mb = float(m['size']) / 1024.0 / 1024.0
                 family = m['details']['family']
                 parameters = m['details']['parameter_size']
-                self.log(Style.MAGENTA +
+                self.log('[blue]' +
                          f'[{selected_model_idx:-2d}] {size_mb:-6.2f}M '
                          f'{parameters:<5} {family:<18} {name:<32}'
-                         + Style.RESET
+                         + '[/blue]'
                          )
                 selected_model_idx += 1
 
@@ -117,30 +126,26 @@ class Simulatar:
             self.log(f'★ model: {model} [selected]')
             info = client.show(model)
             try:
-                self.log(Style.WHITE2 + f'* sim finger: {str(bin(int(self.sim_id))):40s}' + Style.RESET)
-                self.log(Style.BLUE, end='')
-                self.log(f'\t-> temperature={self.temperature}')
-                self.log(f'\t-> num_ctx={self.num_ctx}')
-                self.log(Style.RED + '\t* family=' + info['details']['family'])
-                self.log('\t-> parameter_size=' + info['details'][
+                self.log(f'[white]* sim finger: {str(bin(int(self.sim_id))):40s}[/white]')
+                self.log(f' temperature={self.temperature}')
+                self.log(f' num_ctx={self.num_ctx}')
+                self.log(f' family=' + info['details']['family'])
+                self.log(f' parameter_size=' + info['details'][
                     'parameter_size'])
-                self.log('\t-> quantization_level=' + info['details'][
+                self.log(f' quantization_level=' + info['details'][
                     'quantization_level'])
-                self.log(f'\t-> families={info["details"]["families"]}')
-                self.log(f'\t-> template={indent(info["template"], prefix="                ")}')
-                self.log(f'\t-> stop={indent(" ".join(info["parameters"]), prefix="                ")}')
-                self.log(f'\t-> system={indent(info["system"], prefix="                ")}')
+                self.log(f' families={info["details"]["families"]}')
+                self.log(f' template={indent(info["template"], prefix="")}')
+                self.log(f' stop={indent(" ".join(info["parameters"]), prefix="")}')
+                self.log(f' system={indent(info["system"], prefix="")}')
             except Exception as e:
-                print(f'exception: {e}')
-
-            print(Style.RESET)
+                self.log(f'[red]exception: {e}[/red]')
 
             context = None
 
             if self.programmed:
                 self.log(f'* auto-remove of context')
             self.redis.delete('sim.context.ids')
-
             # section process instruct
             while True:
                 current_chars = 0
@@ -159,7 +164,11 @@ class Simulatar:
                     context = []
                     self.log('* new empty context')
                 except Exception as e:
-                    self.log(f"! loading error: {e}")
+                    self.console.rule(f'EXCEPTION')
+                    self.log(f"[red]{e}[/red]")
+                    self.console.print_exception()
+
+                self.console.rule(f"[bold blue] query #{self.programm_current_instruction}[/bold blue]")
 
                 if self.programmed:
                     if self.programm_current_instruction >= (len(
@@ -168,24 +177,17 @@ class Simulatar:
                         self.log('■ end if program')
                         prompt = input("< enter the prompt: ")
                     else:
-                        step_engine = 'setup' if (
-                                self.programm_current_instruction == 0
-                                and
-                                self.programmed) else 'prompt'
-
                         prompt = self.programm_instructions[self.programm_current_instruction]
 
                         self.log(
                             f'* going via program, instruction: '
                             f'{self.programm_current_instruction + 1}'
-                            f'/{len(self.programm_instructions)}\n'
-                            f'* {step_engine}: ' +
-                            Style.CYAN + f'{prompt}' + Style.RESET
+                            f'/{len(self.programm_instructions)}\n' +
+                            f'[cyan]{prompt}[/cyan]',
+                            justify="full"
                         )
                 else:
                     prompt = input("< enter the prompt: ")
-
-                self.log('★ ' + Style.MAGENTA + f'{model}' + Style.RESET + ' thinking ...')
 
                 options = {
                     'temperature': self.temperature,
@@ -220,6 +222,9 @@ class Simulatar:
                 num_context = 0
                 response = None
                 scontext = ''
+
+                self.log(f'[red]{model}[/red] thinking ...')
+
                 for response in client.generate(
                         model=model,
                         prompt=prompt,
@@ -231,7 +236,6 @@ class Simulatar:
                         # template=info['template']
                 ):
                     try:
-
                         resp = response['response']
                         current_chars += len(resp)
                         if prev_nl and resp == '\n':
@@ -241,13 +245,10 @@ class Simulatar:
                         if "\n" in resp:
                             current_chars = 0
                             self.log(resp, end='', flush=True)
-                        elif current_chars >= self.max_line_chars:
-                            current_chars = 0
-                            self.log(str.strip(resp), flush=True)
                         else:
                             resp = resp.replace('\'', '')
                             if len(resp):
-                                self.log(Style.YELLOW + resp + Style.RESET, end='', flush=True)
+                                self.log(f'[yellow]{resp}[/yellow]', end='', flush=True)
                                 prev_nl = False
 
                             scontext = ''
@@ -259,7 +260,9 @@ class Simulatar:
                                 num_context = -2
 
                     except Exception as e:
-                        print(f'exception outer generate: {e}')
+                        self.console.rule(f'EXCEPTION')
+                        self.log(f"[red]{e}[/red]")
+                        self.console.print_exception()
                         continue
 
                 if self.programmed is False and len(scontext):
@@ -288,11 +291,9 @@ class Simulatar:
                     self.programm_current_instruction += 1
 
         except Exception as e:
-            self.log(Style.RED + '\n\n--')
-            self.log(f"! ∓inal error: {e}")
-            print("-" * 60)
-            traceback.print_exc(file=sys.stdout)
-            print("-" * 60 + Style.RESET)
+            self.console.rule(f'EXCEPTION')
+            self.log(f"[red]{e}[/red]")
+            self.console.print_exception()
 
 
 RULES = """

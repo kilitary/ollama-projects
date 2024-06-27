@@ -39,11 +39,13 @@ volume = cast(interface, POINTER(IAudioEndpointVolume))
 # section global
 console = Console(width=122)
 
-max_vol = 30.0
-min_vol = -35
+max_vol = 30
+min_vol = -1
 max_string_len = 15
-max_len = 400
-min_len = 170
+max_len = 230
+min_len = 100
+init_freq = 300
+max_freq = 10000
 
 # 1nd rail - volume (implementation: speed)
 volume.SetMasterVolumeLevel(min_vol, None)
@@ -59,7 +61,7 @@ def rail_vol(a=0):
     vlx = random.randrange(1, 2 + abs(int(vlx)))
     vlx = -(abs((-vlx * random.randrange(1, 3))) % max_vol)
     # vl = min(-30, min(10, int(vl)))
-    if vlx <= min_vol or vl >= max_vol:
+    if vlx <= min_vol or vlx >= max_vol:
         vl = random.randrange(min_vol, max_vol)
     else:
         vl = vlx
@@ -68,29 +70,30 @@ def rail_vol(a=0):
     try:
         volume.SetMasterVolumeLevel(vl, None)  # 10%
     except Exception as e:
-        console.print(f'exception in volume: {e}', style="red on white")
+        pass
+        # console.print(f"exception: {e}")
+        # console.print_exception()
 
 
 # 2ct rail: decoy simulation program
 
 # section decoy
 def rail_freq_len(d=0, x=0, y=0, a=0, xx=0):
+    frq_i = init_freq
     line = random.randrange(0, 3)
     if line < 1:
         idel = 2 + int(d / 10)
-        frq_i = 600
-        frq_i += int(d / idel + x / y)
-        frq_i %= 5134
+        frq_i += int(d / idel + x / y + xx)
+        frq_i %= max_freq
         frq_i = max(37, frq_i)
     else:
         idel = int(d * 10)
-        frq_i = 600
         frq_i += int(d * idel + x * y)
-        frq_i %= 5134
+        frq_i %= max_freq
         frq_i = max(37, frq_i)
 
     rnl = random.randrange(min(x, a) + 1, min(x, a) + 1 + (max(d, xx) + 100))
-    ln_i = random.randrange(min_len, max(1 + abs(int(idel + a - x + d + rnl) % max_len), max_len))
+    ln_i = random.randrange(min_len, max(1 + abs(int(idel + (a * x) - d + rnl) % max_len), max_len))
 
     return frq_i, ln_i
 
@@ -138,10 +141,10 @@ def rails_run(ai=0):
                     r = random.randrange(1, 3)
 
                     if r == 2:
-                        st = '[green on yellow]'
+                        st = '[black on yellow]'
                         rail_vol(a=a)
                     else:
-                        st = '[blue]'
+                        st = '[cyan]'
 
                     console.print(f'{st}{frq:04d}:{ln:03d}', end='')
                     console.print(' ', end='')
