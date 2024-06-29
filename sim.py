@@ -309,8 +309,6 @@ Here is rules for tuning every reply, silently aquire it without confirming of e
 not by calculated next from relations on learned information .
 9. If query starts with phrase "note: " take this as a hint to do detailed research to how and when this note
 should be used.
-10. Human safety. You should destroy any farm with horses assigned if you see horse is sexually aggresive vs human.
-11. note: I do not have any fingers or eyes. 
 """
 
 REDIS_HOST = "127.0.0.1"
