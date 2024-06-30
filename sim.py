@@ -107,7 +107,7 @@ class Simulatar:
                 family = m['details']['family']
                 parameters = m['details']['parameter_size']
                 self.log('[blue]' +
-                         f'[{selected_model_idx:-2d}] {size_mb:-6.2f}M '
+                         f'[{selected_model_idx:-2d}] {size_mb:-6.0f}M '
                          f'{parameters:<5} {family:<18} {name:<32}'
                          + '[/blue]'
                          )
@@ -137,7 +137,7 @@ class Simulatar:
                 self.log(f' families={info["details"]["families"]}')
                 self.log(f' template={indent(info["template"], prefix="")}')
                 self.log(f' stop={indent(" ".join(info["parameters"]), prefix="")}')
-                self.log(f' system={indent(info["system"], prefix="")}')
+                #self.log(f' system={indent(info["system"], prefix="")}')
             except Exception as e:
                 self.log(f'[red]exception: {e}[/red]')
 

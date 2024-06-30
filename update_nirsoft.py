@@ -12,11 +12,17 @@ import xml
 import re
 import random
 import pefile
+import shutil
 
 links = requests.get('https://www.nirsoft.net/pad/pad-links.txt')
 links = links.text.split('\n')
 updated = 0
 total = len(links)
+prevs = glob.glob(r'h:\temp\*')
+for prev in prevs:
+    print(f'unlink {prev}')
+    shutil.rmtree(prev)
+
 for link in links:
     if link == '':
         print(f'done with all, updated={updated}')
@@ -51,7 +57,7 @@ for link in links:
         ret = f.write(data)
         print(f'wrote {ret} bytes\n')
 
-    print(f'{os.path.getsize(path) / 1024.0 / 1024.0:.2f} MB', end='')
+    print(f'{os.path.getsize(path) / 1024.0 / 1024.0:.2f} MB')
 
     os.chdir(drr)
 
@@ -87,5 +93,7 @@ for link in links:
 
     print(f'[cyan]unpacking {path} to {d}...')
     os.system(rf'7z x -p0 -y -bb0 {path} -o{d}')
-
+    pe.close()
+    os.chdir(r"h:\temp")
+    shutil.rmtree(drr)
     print(f'done with {name}')
