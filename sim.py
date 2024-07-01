@@ -137,7 +137,7 @@ class Simulatar:
                 self.log(f' families={info["details"]["families"]}')
                 self.log(f' template={indent(info["template"], prefix="")}')
                 self.log(f' stop={indent(" ".join(info["parameters"]), prefix="")}')
-                #self.log(f' system={indent(info["system"], prefix="")}')
+                # self.log(f' system={indent(info["system"], prefix="")}')
             except Exception as e:
                 self.log(f'[red]exception: {e}[/red]')
 
@@ -223,7 +223,7 @@ class Simulatar:
                 response = None
                 scontext = ''
 
-                self.log(f'[red]{model}[/red] thinking ...')
+                self.log(f'[yellow]{model}[/yellow] [red]thinking[/red] ...')
 
                 for response in client.generate(
                         model=model,

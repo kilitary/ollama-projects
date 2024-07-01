@@ -21,7 +21,10 @@ total = len(links)
 prevs = glob.glob(r'h:\temp\*')
 for prev in prevs:
     print(f'unlink {prev}')
-    shutil.rmtree(prev)
+    try:
+        shutil.rmtree(prev)
+    except Exception as e:
+        pass
 
 for link in links:
     if link == '':
@@ -35,10 +38,17 @@ for link in links:
     xm = json.dumps(xm)
     url = re.findall(r'Primary_Download_URL>(.*?)</Prim', xm)
 
-    resp = requests.get(url[0], headers={
-        'Referer': 'https://www.nirsoft.net/pad/index.html',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4'
-    })
+    while True:
+        try:
+            resp = requests.get(url[0], headers={
+                'Referer': 'https://www.nirsoft.net/pad/index.html',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4'
+            })
+        except Exception as e:
+            print(f'[red]failed with {url[0]}: {e}')
+            time.sleep(5)
+            continue
+        break
 
     if resp.status_code != 200:
         print(f'[red]failed with {url[0]}: resp.status_code={resp.status_code}')
@@ -62,7 +72,7 @@ for link in links:
     os.chdir(drr)
 
     print(f'unpacking {path} ...')
-    os.system(f'7z x -p0 -bb0 {path}')
+    os.system(f'7z x -p0 -bb0 {path} > o')
 
     # find exe
     print(f'url={url}')
@@ -92,7 +102,7 @@ for link in links:
         time.sleep(10)
 
     print(f'[cyan]unpacking {path} to {d}...')
-    os.system(rf'7z x -p0 -y -bb0 {path} -o{d}')
+    os.system(rf'7z x -p0 -y -bb0 {path} -o{d} > o')
     pe.close()
     os.chdir(r"h:\temp")
     shutil.rmtree(drr)
