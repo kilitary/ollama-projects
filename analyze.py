@@ -64,14 +64,7 @@ for m in models['models']:
         family = m['details']['family']
         parameters = m['details']['parameter_size']
 
-        slog('\n[#005fd7]' +
-             f'> {selected_model_idx:2d} {size_mb:-6.0f}M '
-             f'{parameters:<5} {family:<18} {model:<32}'
-             )
-
-        selected_model_idx += 1
-
-        slog(f'★ loading model: [yellow]{model}[/yellow]')
+        slog(f'[#005fd7]★ loading model: [yellow]{model}[/yellow]  size={size_mb:.2f}M par={parameters} fam={family}')
 
         info = client.show(model)
 
@@ -115,7 +108,6 @@ for m in models['models']:
         # penalize_newline
         response = None
         context = []
-        current_chars = 0
 
         slog(f'\n⁂ [yellow]{model}[/yellow] [red]thinking[/red] ...\n')
 
@@ -131,11 +123,14 @@ for m in models['models']:
         ):
 
             resp = response['response']
-            current_chars += len(resp)
 
             if len(resp):
                 slog(f'[#00d75f]{resp}', end='', flush=True)
     except Exception as e:
         console.rule(f'EXCEPTION')
-        slog(f"[red]{e}[/red]")
+        slog(f"[red]{e}")
         #console.print_exception()
+
+    slog('\n')
+    console.rule(f'♪♪♪')
+    slog('\n\n')
