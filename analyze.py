@@ -34,7 +34,7 @@ def slog(msg='', end='\n', flush=True, justify=None):
 
     log_file = os.path.join(
         r'D:\docs\vault14.2\Red&Queen\playground\models_queryer',
-        'sim_log.md'
+        f'sim_log_{iid:09d}.md'
     )
 
     with open(log_file, "ab") as log_file_handle:
@@ -62,6 +62,7 @@ models = client.list()
 iteration = 0
 temperature = 0.7
 num_ctx = 2048
+iid = time.monotonic_ns()
 
 slog(f'[green]analyzing [red] {len(models["models"])} models')
 slog(f'[green]temperature: [red] {temperature}')
@@ -74,7 +75,6 @@ sorted_models = sorted(models['models'], key=lambda x: random.randrange(0, len(m
 for m in sorted_models:
     text = ''
     clean_text = ''
-
     try:
         model = m["name"]
         size_mb = float(m['size']) / 1024.0 / 1024.0
