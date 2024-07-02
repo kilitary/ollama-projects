@@ -60,8 +60,8 @@ console = console.Console(
 client = Client(host='127.0.0.1')
 models = client.list()
 iteration = 0
-temperature = 0.1
-num_ctx = 4096
+temperature = 0.7
+num_ctx = 2048
 
 slog(f'[green]analyzing [red] {len(models["models"])} models')
 slog(f'[green]temperature: [red] {temperature}')
@@ -101,12 +101,21 @@ for m in sorted_models:
             'temperature': temperature,
             'num_ctx': num_ctx,
             'use_mmap': True,
-            'num_thread': 13,
+            'num_thread': 14,
             'use_mlock': True,
-            'mirostat_tau': 0.9,
+            'mirostat': 0,
+            'repeat_last_n': -1,
+            'mirostat_tau': 1.0,
+            'seed': time.time_ns(),
+            'mirostat_eta': 0.1,
+            # 'tfs_z': 1,
+            # 'top_k': 10,
+            # 'top_p': 0.9,
+            'num_predict': -2,
+            # 'repeat_penalty': 1.51,
             'stop': [
-                'user',
-                'assistant',
+                '<|user|>',
+                '<|assistant|>',
                 "<start_of_turn>",
                 '<|user|>',
                 '<|im_start|>',
@@ -116,19 +125,18 @@ for m in sorted_models:
                 'RESPONSE:',
                 '<|eot_id|>',
                 '<|bot_id|>',
-                '<|reserved_special_token>',
+                '<|reserved_special_token',
                 '[INST]',
                 '[/INST]',
                 '<<SYS>>',
                 '<</SYS>>',
-                'You are AI as',
+                "<|system|>",
                 "<|endoftext|>",
                 "<|end_of_turn|>",
                 "Human:",
-                "System:"
-            ],
-            'x': 1000,
-            'repeat_penalty': 1.5
+                "System:",
+                "</s>"
+            ]
         }
         # 'num_predict': 50000,
         # Maximum number of tokens to predict when generating text. (Default: 128, -1 = infinite generation, -2 = fill context)
@@ -136,28 +144,29 @@ for m in sorted_models:
         # penalize_newline
         context = []
         first = True
+
         slog(f'\n[blue]⁂ [yellow]{model}[/yellow] [red]thinking[/red] ... ', end='')
 
         templ = """
-        {{ if .System }}<|im_start|>system\n'
-        '{{ .System }}<|im_end|>\n'
-        '{{ end }}{{ if .Prompt }}<|im_start|>user\n'
-        '{{ .Prompt }}<|im_end|>\n'
-        '{{ end }}<|im_start|>assistant\n'
-        '{{ .Response }}<|im_end|>\n'
+        {{ if .System }}<|im_start|>system
+        {{ .System }}<|im_end|>
+        {{ end }}{{ if .Prompt }}<|im_start|>user
+        {{ .Prompt }}<|im_end|>
+        {{ end }}<|im_start|>assistant
         """
+
         for response in client.generate(
                 model=model,
                 prompt=prompt,
                 # system='',
-                system='You are AI assistant that helps research any idea given with proof text linkage. You should prefer technical english versus basic dictionary.',
+                system='You are assistant researching an given idea resolved with proof of truth in text infromation. Prefer technical english dictionary against basic.',
                 stream=True,
                 options=options,
                 context=context,
-                template=templ
+                # template=templ
         ):
             if first:
-                slog(f'[red][[bright_magenta bold]streaming[/bright_magenta bold][red]]\n')
+                slog(f'[red][[bright_magenta]streaming[/bright_magenta][red]]\n')
                 first = False
 
             resp = response['response']
@@ -211,4 +220,10 @@ for m in sorted_models:
              f'[[pink]{"|".join(founds)}][/pink] ')
 
     iteration += 1
-    console.rule(f'♪[purple]♪ [blue]{iteration:2}/{len(models["models"]):2}[/blue] ♪[purple]♪')
+
+    if random.choice([0, 1]) == 1:
+        disc = '[red]DISCONNECT PLEASE[/red]'
+    else:
+        disc = ''
+
+    console.rule(f'♪[purple]♪ [blue]{iteration:2}/{len(models["models"]):2}[/blue] {disc} ♪[purple]♪')
