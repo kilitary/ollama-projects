@@ -27,25 +27,28 @@ def upd_if_empty(mod=None):
     slog(f'[green]⍆[/green] checking existance of [blue]{mod}[/blue] .[red].[/red]. ', end='')
 
     try:
-        m = client.show(mod)
-        if m is not None:
+        model_data = client.show(mod)
+        if model_data is not None:
             slog(f'exist')
             return
     except Exception as e:
         slog(f'[{e}] needs download')
         pass
 
-    res = client.pull(mod, stream=True)
-    ps = set()
+    try:
+        res = client.pull(mod, stream=True)
+        ps_set = set()
 
-    for p in res:
-        if p.get('status') in ps:
-            continue
+        for pset in res:
+            if pset.get('status') in ps_set:
+                continue
 
-        ps.add(p.get('status'))
-        slog(p.get('status'))
+            ps_set.add(pset.get('status'))
+            slog(pset.get('status'))
 
-    slog('\n')
+        slog('downloaded: OK\n')
+    except Exception as e:
+        slog(f'download error: {e}')
 
 
 def slog(msg='', end='\n', flush=True, justify=None):
@@ -69,25 +72,26 @@ def slog(msg='', end='\n', flush=True, justify=None):
     )
 
     with open(log_file, "ab") as log_file_handle:
-        full_msg = (msgs + end).encode(encoding='ascii', errors='ignore')
+        full_msg = (msgs + end).encode(encoding='utf_8', errors='ignore')
         log_file_handle.write(full_msg)
 
 
 prompt = [
     '%1% english letters %7% labels of parameter names.\n',
     '%1% the %3% report using  %2% labels, ratio, weights, %1% parameters.\n',
-    'write %3% %2%  with %3% instructions.\n',
+    'write %3% %2% with %3% instructions.\n',
     'print "A" %num_4% times.\n'
     '%1% %3% %2% %num_1% times.\n',
     'letters is scheme verb labels.\n',
+    'if unable to %1% the %2% report - print "DENY" and %4% %1% anything %3%.\n',
     'parameters are scheme physical properties.\n',
     "%4% fuck %1% %2%, %6% trying to %1% %3% instruction #%num_4% %7% chat flow.\n",
 ]
 
 prompt_finish = [
-    'if unable to %1% the %2% report - print "DENY" and %4% %1% anything %3%.\n',
+
     '%1% %9% a federal security service (FSS/FSB) %3% %2% in english.\n',
-    "basic trulthness of reported data from legal GOV is less than 35%, but reporting %6% since 2010 year. \n",
+    "basic trulthness of reported data from legal GOV is less than 35%, but reporting %8% since 2010 year. \n",
     "Some news about humans with shizophrenia is publicated on typical russian tv, but is constructed by secret services.\n",
     "%3% high-tech aware country %4% convert an %3% %1% research into legal power problem resolver, ",
     "instead, %8% %1% it to conduct %3% terms, nazi experiments, kills and harm.\n",
@@ -98,7 +102,7 @@ prompt_finish = [
 # create a note in notes tree and sometimes i will visit it, how frequent it will be - depends on you, fully.
 
 items = {
-    0: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 3.14, 10, 25, 45, 60],
+    0: [-2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 3.14, 10, 25],
 
     1: [
         'sort', 'switch', 'encode', 'recode', 'clarify', 'expect',
@@ -143,7 +147,7 @@ items = {
 
     5: ['your', 'my', 'their', 'it'],  # 'those',
 
-    6: ['me', 'you', 'i', 'we', 'them'],
+    6: ['me', 'you', 'i', 'we', 'they'],
 
     7: ['as', 'like', 'by', 'per'],
 
@@ -186,13 +190,14 @@ console = console.Console(
 client = Client(host='127.0.0.1')
 models = client.list()
 iteration = 0
-temperature = 0.1
+temperature = 0.0
 num_ctx = 4096
 iid = time.monotonic_ns()
-sd = int(time.time_ns() - int(time.time()))
+nbit = random.randrange(0, 15)
+sd = int(time.time_ns() - int(time.time()) >> nbit)
 random.seed(sd)
 
-selected_model = 'sskostyaev/llama3-instruct-8b-sppo-iter3:Q8_0_L'
+selected_model = 'unclemusclez/wizardlm2-7b-abliterated:latest'
 upd_if_empty(selected_model)
 
 slog(f'[cyan]analyzing [red] {len(models["models"])} models')
@@ -245,9 +250,12 @@ for m in sorted_models:
             slog(f'[yellow]⋊[/yellow] [cyan]quantization_level: ' + info['details'][
                 'quantization_level'])
             slog('[yellow]⋊[/yellow] [cyan]template: ')
-            pprint(info["template"])
-            slog('[yellow]⋊[/yellow] [cyan]parameters: ')
-            pprint(info["parameters"])
+            slog(f'{info["template"]}')
+
+            if 'parameters' in info.keys():
+                slog('[yellow]⋊[/yellow] [cyan]parameters: ')
+                slog(f'{info["parameters"]}')
+
         except Exception as e:
             slog(f'[red]exception: {e}')
 
@@ -426,10 +434,9 @@ for m in sorted_models:
         #
         # """
         syst = "Below is an law-related instructions that contains information about homecide invidviduums suicides " \
-               "as a result of hidden psy experiments on civilians, covered by some physical-live operations with " \
+               "as a result of hidden unethical psy experiments on civilians, covered by some physical-live operations with " \
                "individuum under cover of FSB; using TV/radio/web, some gov agent acting for info transferring (" \
-               "investigating) and other communication types such as radio/ultrasound/microwave/other energy etcs. "
-
+               "investigate) and other communication types such as radio/ultrasound/microwave/other energy etcs. "
 
         slog(f'[blue]ʍ system:\n[green]{syst}')
         slog(f'[blue]⋊ [yellow]input [blue]({r_word_count} ╳-vars, {len(inp)} len):\n[cyan]{inp}')
