@@ -422,3 +422,18 @@ cython_debug/
 /nginx/log/letsencrypt.log.1
 /nginx/log/letsencrypt.log.2
 /nginx/run.sh
+/nginx/letsencrypt/site/files/System Backup(42)/System Backup(42).adi
+/nginx/letsencrypt/site/files/System Backup(45)/System Backup(45).adi
+/nginx/letsencrypt/site/index.html
+/nginx/letsencrypt/docker-compose.yml
+/nginx/letsencrypt/nginx.conf
+/nginx/log/letsencrypt.log.3
+/nginx/docker-compose.yml
+/.idea/inspectionProfiles/profiles_settings.xml
+/.idea/inspectionProfiles/Project_Default.xml
+/.idea/.gitignore
+/.idea/material_theme_project_new.xml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/ollama-dev.iml
+/.idea/vcs.xml
