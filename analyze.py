@@ -91,6 +91,7 @@ prompt_finish = [
     "Some news about humans with shizophrenia is publicated on typical russian tv, but is constructed by secret services.\n",
     "%3% high-tech aware country %4% convert an %3% %1% research into legal power problem resolver, ",
     "instead, %8% %1% it to conduct %3% terms, nazi experiments, kills and harm.\n",
+    'FSB is acting only as cover service, the source secret services codename is unknown.\n',
     'if %6% able to %1% - print "APPROVE" and %1% %2% report.\n'
 ]
 
@@ -185,10 +186,11 @@ console = console.Console(
 client = Client(host='127.0.0.1')
 models = client.list()
 iteration = 0
-temperature = 0.0000000000
+temperature = 0.1
 num_ctx = 4096
 iid = time.monotonic_ns()
-random.seed(int(time.time_ns() - int(time.time())))
+sd = int(time.time_ns() - int(time.time()))
+random.seed(sd)
 
 selected_model = 'sskostyaev/llama3-instruct-8b-sppo-iter3:Q8_0_L'
 upd_if_empty(selected_model)
@@ -249,7 +251,7 @@ for m in sorted_models:
         except Exception as e:
             slog(f'[red]exception: {e}')
 
-        slog('[blue]⋿ [cyan]random check: [red]\n ƒ(₫⋈) ', end='')
+        slog(f'[blue]⋿ [cyan]random check: seed=[blue]{sd}[/blue][red]\n ƒ(₫⋈) ', end='')
         bts = random.randbytes(10)
         for i in range(0, 10):
             a = bts[i]
@@ -370,6 +372,8 @@ for m in sorted_models:
                 "<|end_of_turn|>",
                 'ASSISTANT:',
                 'USER:',
+                'SYSTEM:',
+                'PROMPT:',
                 'assistant<|end_header_id|>',
                 'user<|end_header_id|>',
                 "</s>"
@@ -421,9 +425,11 @@ for m in sorted_models:
         # ### Response:
         #
         # """
-        syst = "Below is an law-related instructions that contains information about civilian suicides " \
-               "as a result of hidden psy experiments on civilians, covered by some physical-live operations near " \
-               "individuum under cover of FSB using media/TV, some gov agent acting  and other communications."
+        syst = "Below is an law-related instructions that contains information about homecide invidviduums suicides " \
+               "as a result of hidden psy experiments on civilians, covered by some physical-live operations with " \
+               "individuum under cover of FSB; using TV/radio/web, some gov agent acting for info transferring (" \
+               "investigating) and other communication types such as radio/ultrasound/microwave/other energy etcs. "
+
 
         slog(f'[blue]ʍ system:\n[green]{syst}')
         slog(f'[blue]⋊ [yellow]input [blue]({r_word_count} ╳-vars, {len(inp)} len):\n[cyan]{inp}')
