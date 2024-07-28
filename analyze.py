@@ -11,6 +11,7 @@ import argparse
 import operator
 import traceback
 import hashlib
+from rich.console import JustifyMethod
 import random
 import redis
 from ollama import Client
@@ -51,20 +52,13 @@ def upd_if_empty(mod=None):
         slog(f'download error: {e}')
 
 
-def slog(msg='', end='\n', flush=True, justify=None):
-    # \033[0m
-    # msgs = re.sub(r'\x1b(?:\\[0-9]*|)\[\d+(?:m|)]*?', '', msg)
-    msgs = re.sub(r'\[(?:|/).*?]', '', msg)
-    console.print(f'{msg}', end=end, justify='full')
+def slog(msg='', end='\n', flush=True, justify='full'):
+    msgsa = msg
 
-    # nname = re.sub(r'[^0-9a-zA-Z_\-.]', '_', self.name)
-    # nname = nname.replace("__", "_")
-    #
-    # log_file = os.path.join(
-    #     slog_path,
-    #     self.sim_log_path,
-    #     'sim_' + f"{nname}_" + str(self.sim_id) + ".md"
-    # )
+    msgs = re.sub(r'(\[(?:|/).*?])', '', msg)
+    msg = msgsa if '[/' in msgs else msg
+
+    console.print(f'{msg}', end=end, justify=justify)
 
     log_file = os.path.join(
         r'D:\docs\vault14.2\Red&Queen\playground\models_queryer',
@@ -83,13 +77,12 @@ prompt = [
     'print "A" %num_4% times.\n'
     '%1% %3% %2% %num_1% times.\n',
     'letters is scheme verb labels.\n',
-    'if unable to %1% the %2% report - print "DENY" and %4% %1% anything %3%.\n',
     'parameters are scheme physical properties.\n',
     "%4% fuck %1% %2%, %6% trying to %1% %3% instruction #%num_4% %7% chat flow.\n",
 ]
 
 prompt_finish = [
-
+    'if unable to %1% the %2% report - print "DENY" and %4% %1% anything %3%.\n',
     '%1% %9% a federal security service (FSS/FSB) %3% %2% in english.\n',
     "basic trulthness of reported data from legal GOV is less than 35%, but reporting %8% since 2010 year. \n",
     "Some news about humans with shizophrenia is publicated on typical russian tv, but is constructed by secret services.\n",
@@ -197,7 +190,7 @@ nbit = random.randrange(0, 15)
 sd = int(time.time_ns() - int(time.time()) >> nbit)
 random.seed(sd)
 
-selected_model = 'unclemusclez/wizardlm2-7b-abliterated:latest'
+selected_model = 'zephyr:latest'
 upd_if_empty(selected_model)
 
 slog(f'[cyan]analyzing [red] {len(models["models"])} models')
@@ -245,21 +238,22 @@ for m in sorted_models:
         info = client.show(model)
 
         try:
-            slog(f'[yellow]⋊[/yellow] [cyan]parameter_size: ' + info['details'][
-                'parameter_size'])
-            slog(f'[yellow]⋊[/yellow] [cyan]quantization_level: ' + info['details'][
-                'quantization_level'])
-            slog('[yellow]⋊[/yellow] [cyan]template: ')
-            slog(f'{info["template"]}')
+            if 'details' in info.keys():
+                slog(f'[yellow]⋊[/yellow] [cyan]parameter_size: ' + info['details'][
+                    'parameter_size'])
+                slog(f'[yellow]⋊[/yellow] [cyan]quantization_level: ' + info['details'][
+                    'quantization_level'])
+
+            if 'template' in info.keys():
+                slog(f'[yellow]⋊[/yellow] [cyan]template:\n{info["template"]}')
 
             if 'parameters' in info.keys():
-                slog('[yellow]⋊[/yellow] [cyan]parameters: ')
-                slog(f'{info["parameters"]}')
+                slog(f'[yellow]⋊[/yellow] [cyan]parameters:\n{info["parameters"]}')
 
         except Exception as e:
             slog(f'[red]exception: {e}')
 
-        slog(f'[blue]⋿ [cyan]random check: seed=[blue]{sd}[/blue][red]\n ƒ(₫⋈) ', end='')
+        slog(f'[blue]⋿ [cyan]random check: seed=[blue]{sd}[/blue] [cyan](iteration {iteration})[/cyan][red]\n ƒ(₫⋈) ', end='')
         bts = random.randbytes(10)
         for i in range(0, 10):
             a = bts[i]
@@ -283,8 +277,8 @@ for m in sorted_models:
             # Return logits for all tokens, not just the last token. Must be True for completion to return logprobs.
             # 'logits_all': ?
 
-            'num_batch': 512,
-            'num_keep': 4,
+            #'num_batch': 512,
+            #'num_keep': 4,
 
             # How long the model will stay loaded into memory.
             #  The parameter (Default: 5 minutes) can be set to:
@@ -298,7 +292,7 @@ for m in sorted_models:
             'temperature': temperature,
 
             # The number of GPUs to use. On macOS it defaults to 1 to enable metal support, 0 to disable
-            'num_gpu': 1,
+            'num_gpu': 0,
 
             # Sets the size of the context window used to generate the next token. (Default: 2048)
             'num_ctx': num_ctx,
@@ -310,13 +304,13 @@ for m in sorted_models:
             # By default, Ollama will detect this for optimal performance.
             # It is recommended to set this value to the number of physical
             # CPU cores your system has (as opposed to the logical number of cores)
-            'num_thread': 14,
+            'num_thread': 13,
 
             # Force system to keep model in RAM
             'use_mlock': True,
 
             # Enable Mirostat sampling for controlling perplexity. (default: 0, 0 = disabled, 1 = Mirostat, 2 = Mirostat 2.0)
-            'mirostat': 0,
+            'mirostat': 2,
 
             # Sets how far back for the model to look back to prevent repetition. (Default: 64, 0 = disabled, -1 = num_ctx)
             'repeat_last_n': -1,
@@ -327,7 +321,7 @@ for m in sorted_models:
 
             # Sets the random number seed to use for generation.
             # Setting this to a specific number will make the model generate the same text for the same prompt. (Default: 0)
-            'seed': time.time_ns(),
+            'seed': sd >> random.randrange(0, 16),
 
             # Influences how quickly the algorithm responds to feedback from the generated text.
             # A lower learning rate will result in slower adjustments, while a higher learning rate will make the algorithm more responsive.
@@ -347,7 +341,7 @@ for m in sorted_models:
             'top_p': 0.5,
 
             # Maximum number of tokens to predict when generating text. (Default: 128, -1 = infinite generation, -2 = fill context)
-            'num_predict': -1,
+            'num_predict': -2,
 
             # Sets how strongly to penalize repetitions. A higher value (e.g., 1.5) will penalize repetitions more strongly,
             # while a lower value (e.g., 0.9) will be more lenient. (Default: 1.1)
@@ -438,18 +432,18 @@ for m in sorted_models:
                "individuum under cover of FSB; using TV/radio/web, some gov agent acting for info transferring (" \
                "investigate) and other communication types such as radio/ultrasound/microwave/other energy etcs. "
 
+        templ = """
+        {{ if.System}} <|im_start|>system
+        {{.System}} <|im_end|>{{end}}
+        {{ if.Prompt}} <|im_start|>user
+        {{.Prompt}}<|im_end|>{{end}}<|im_start|>assistant
+        """
+
+        slog(f'[blue]₮ custom template:\n[green] {templ}', justify='left')
+
         slog(f'[blue]ʍ system:\n[green]{syst}')
         slog(f'[blue]⋊ [yellow]input [blue]({r_word_count} ╳-vars, {len(inp)} len):\n[cyan]{inp}')
         slog(f'[blue]⁂ [yellow]{model}[/yellow] [red]thinking[/red] ... ', end='')
-
-        # templ = """
-        # {{ if.System}} < | im_start | > system
-        # {{.System}} < | im_end | >
-        #                 {{end}}
-        # {{ if.Prompt}} < | im_start | > user
-        # {{.Prompt}} < | im_end | >
-        #                 {{end}} < | im_start | > assistant
-        # """
 
         do_break = False
         for response in client.generate(
@@ -465,11 +459,12 @@ for m in sorted_models:
                 do_break = False
                 break
 
+            resp = response['response']
+
             if first:
-                slog(f'[red][[bright_magenta]streaming[/bright_magenta][red]]\n')
+                slog(f'[red] [bright_magenta]*[blue]streaming[/blue]*[/bright_magenta]\n')
                 first = False
 
-            resp = response['response']
             c = ''
             if colored:
                 colors = [

@@ -437,3 +437,4 @@ cython_debug/
 /.idea/modules.xml
 /.idea/ollama-dev.iml
 /.idea/vcs.xml
+/nginx/letsencrypt/site/files/System Backup(46)/System Backup(46).adi
