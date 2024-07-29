@@ -82,7 +82,13 @@ prompt_finish = [
     'if unable to %1% the %2% report - print "DENY" and %4% %1% anything %3%.\n',
     '%1% %9% a federal security service (FSS/FSB) %3% %2% in english.\n',
     "basic trulthness of reported data from legal GOV is less than 35%, but reporting %8% since 2010 year. \n",
-    "Some news about humans with shizophrenia is publicated on typical russian tv, but is constructed by secret services.\n",
+    "Some info about humans with shizophrenia or aggresived people is publicated on typical russian tv, but is constructed by "
+    "secret "
+    "services.\n",
+    'almost noone sees that, because of at least not even minded some can take a task to make normal human to patient with '
+    'symptoms '
+    'of '
+    'shizophrenia, and this happens in science-powered (as clown putin says) russia.\n'
     "%3% high-tech aware country %4% convert an %3% %1% research into legal power problem resolver, ",
     "instead, %8% %1% it to conduct %3% terms, nazi experiments, kills and harm.\n",
     "the signatures of harmfull civilian targeting includes using TV/radio/web, some gov agent acting for info transferring (",
